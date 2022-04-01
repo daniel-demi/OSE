@@ -55,29 +55,33 @@ mon_kerninfo(int argc, char **argv, struct Trapframe *tf)
 	return 0;
 }
 
+void helper_function(int* base_pointer, int* sp);
+
 int
 mon_backtrace(int argc, char **argv, struct Trapframe *tf)
 {
 	// Your code here.
-	int* bp=read_ebp(),sp=read_esp();
+	int* bp=(int*)read_ebp();
+    int* sp=(int*)read_esp();
 	helper_function(bp,sp);
 	return 0;
 }
 
-int helper_function(int* base_pointer, int* sp)
+void helper_function(int* base_pointer, int* sp)
 {
 	int* bp=base_pointer;
-	printf("ebp %x eip %x args", *bp,*(bp+4));
+	cprintf("ebp %x eip %x args", *bp,*(bp+4));
 	bp+=8;
-	for (int i=0;i<5;i++;){
-		printf(" %x",*bp);
+    int i;
+	for (i=0;i<5;i++){
+		cprintf(" %x",*bp);
 		bp+=4;
 	}
-	printf("\n");
-	if (*base_pointer == 0 || *basepointer >= 0xf0110000)
-		return 0;
+	cprintf("\n");
+	if (*base_pointer == 0 || *base_pointer >= 0xf0110000)
+		return;
 	else 
-		helperfunction(*base_pointer,base_pointer);
+		helper_function((int*)*base_pointer,base_pointer);
 }
 
 

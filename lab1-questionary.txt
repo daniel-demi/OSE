@@ -20,8 +20,6 @@
 CMOS
 === Q What instruction causes processor to switch to 32-bit mode?
 ===   (specify address & instruction)
-0x7c23: movl %cr0,%eax
-0x7c26: orl $0x1,%eax
 0x7c2a: movl %eax,%cr0
 === Q What's the instruction performed immediately after the processor
 ===   is switched to 32-bit mode? (address & instruction)
@@ -80,17 +78,17 @@ _start = RELOC(entry)
 ===   one before the change of the link address.
 ===   Check yourself by recompiling & debugging!
 ===   (address & instruction)
-
+0xfd14f:	ljmpl  $0x8,$0xfd157
 === Q What's the first instruction after the kernel establishes a new
 ===   mapping that would fail to work properly if the mappings were
 ===   not in place? (address & instruction)
-
+0x10003e:	jmp    0x10003e
 === Q What functions from console.c are directly used by printf.c?
 ===   (just function names separated by spaces, not full declarations)
-
+cputchar
 === Q What is the task of console.c lines 194-202?
 ===   (free form, up to 10 words)
-
+Move 24 rows down when buffer is full
 ===   Consider the code
 ===   	int x = 1, y = 3, z = 4;
 ===	cprintf("x %d, y %x, z %d\n", x, y, z);
