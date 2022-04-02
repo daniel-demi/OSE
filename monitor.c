@@ -55,7 +55,7 @@ mon_kerninfo(int argc, char **argv, struct Trapframe *tf)
 	return 0;
 }
 
-void helper_function(int* base_pointer, int* sp);
+void helper_function(int* base_pointer, int* stack_pointer);
 
 int
 mon_backtrace(int argc, char **argv, struct Trapframe *tf)
@@ -67,21 +67,25 @@ mon_backtrace(int argc, char **argv, struct Trapframe *tf)
 	return 0;
 }
 
-void helper_function(int* base_pointer, int* sp)
+void helper_function(int* base_pointer, int* stack_pointer)
 {
 	int* bp=base_pointer;
-	cprintf("ebp %x eip %x args", *bp,*(bp+4));
-	bp+=8;
+    int* next_bp = (int *)(*bp); // Make it local so we don't override the memory
+    if(!next_bp) next_bp = (int *)0xf0110000;
+	cprintf("ebp %08x eip %08x args", next_bp,*(bp+1));
+	bp+=2;
     int i;
 	for (i=0;i<5;i++){
-		cprintf(" %x",*bp);
-		bp+=4;
+		cprintf(" %08x",*bp);
+		bp+=1;
 	}
 	cprintf("\n");
+    struct Eipdebuginfo info;
+    debuginfo_eip(*(stack_pointer+1), &info); 
+    cprintf("\t%s:%d: %.*s+%d\n", info.eip_file, info.eip_line, info.eip_fn_namelen, info.eip_fn_name, (info.eip_fn_addr - *(stack_pointer+1)));
 	if (*base_pointer == 0 || *base_pointer >= 0xf0110000)
 		return;
-	else 
-		helper_function((int*)*base_pointer,base_pointer);
+    helper_function((int*)(*base_pointer), base_pointer);
 }
 
 
