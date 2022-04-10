@@ -301,8 +301,17 @@ page_init(void)
 struct PageInfo *
 page_alloc(int alloc_flags)
 {
-	// Fill this function in
-	return 0;
+	// Return NULL if out of memory
+	if (page_free_list == NULL) return NULL;
+	// set new page from last free page
+	struct PageInfo * page_start = page_free_list;
+	page_free_list = page_free_list->pp_link;
+	// zero the page if flag is set
+	page_start->pp_link = NULL;
+	if(alloc_flag & ALLOC_ZERO) {
+		memset(page2kva(page_start), 0, PGSIZE);
+	}
+	return page_start;
 }
 
 //
@@ -315,6 +324,14 @@ page_free(struct PageInfo *pp)
 	// Fill this function in
 	// Hint: You may want to panic if pp->pp_ref is nonzero or
 	// pp->pp_link is not NULL.
+	if (pp->pp_ref) {
+		panic ("page_free: pp_ref is not 0\n");
+	}
+	if (pp->pp_link) {
+		panic ("page_free: pp_link is not NULL\n");
+	}
+	pp->pp_link = page_free_list;
+	page_free_list = pp;
 }
 
 //
@@ -354,7 +371,24 @@ pte_t *
 pgdir_walk(pde_t *pgdir, const void *va, int create)
 {
 	// Fill this function in
-	return NULL;
+	pde_t* pde = pgdir[PDX(va)];
+	// If entry exist return the table entry
+	if (pde & PTE_P) {
+		pte_t *table = KADDR(PTE_ADDR(*pde));
+		return &table[PTX(va)];
+	}
+	// if the page does not exis and create == false
+	if (!create) return NULL;
+	PageInfo *pp = page_alloc(PAGE_ZERO);
+	// If page_alloc returns NULL
+	if (!pp) return NULL;
+	pte_t *table = (pte_t *)page2kva(pp);
+	// If table entry doesn't exist
+	if (!table) return NULL;
+	// Create the page
+	pp->pp_ref++;
+	*pde = PADDR(table) | PTE_P | PTE_W | PTE_U;
+	return &table[PTX(va)];
 }
 
 //
