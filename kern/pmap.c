@@ -98,7 +98,6 @@ boot_alloc(uint32_t n)
 	// to a multiple of PGSIZE.
 	//
 	// LAB 2: Your code here.
-    i386_detect_memory();
     int number_of_pages_required = ROUNDUP(n, PGSIZE) / PGSIZE;
     if (npages < number_of_pages_required) panic("boot_alloc: Out of memory\n");
     result = next_free;
@@ -176,7 +175,6 @@ mem_init(void)
 	//    - pages itself -- kernel RW, user NONE
 	// Your code goes here:
 
-    *pages = PADDR(UPAGES) | PTE_U |PTE_P;
 
 	//////////////////////////////////////////////////////////////////////
 	// Use the physical memory that 'bootstack' refers to as the kernel
@@ -257,11 +255,35 @@ page_init(void)
 	// NB: DO NOT actually touch the physical memory corresponding to
 	// free pages!
 	size_t i;
-	for (i = 0; i < npages; i++) {
+
+    //First physical page is in use
+    pages[0].pp_ref = 1;
+    pages[0].pp_link = NULL;
+    
+    // Rest of base mem is free
+	for (i = 1; i < npages_basemem; i++) {
 		pages[i].pp_ref = 0;
 		pages[i].pp_link = page_free_list;
 		page_free_list = &pages[i];
 	}
+    // All IO hole is not to be allocated
+    npages_iomem = EXTPHYSMEM / PGSIZE;
+    for (i = npages_basemem; i < npages_iomem; i++) {
+        pages[i].pp_ref = 1;
+        pages[i].pp_link = NULL;
+    }
+    // Mark located all used pages
+    int first_free = PADDR(boot_alloc(0)) / PGSIZE;
+    for (i = npages_iomem; i < first_free; i++) {
+        pages[i].pp_ref = 1;
+        pages[i].pp_link = NULL;
+    }
+    // Mark rest of extend memory as free
+    for (i = first_free; i < npages; i++) {
+        pages[i].pp_ref = 0;
+		pages[i].pp_link = page_free_list;
+		page_free_list = &pages[i];
+    }
 }
 
 //
