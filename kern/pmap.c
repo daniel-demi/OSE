@@ -395,7 +395,7 @@ pte_t *
 pgdir_walk(pde_t *pgdir, const void *va, int create)
 {
 	// Fill this function in
-	pde_t* pde = (pde_t *)&pgdir[PDX(va)];
+	pde_t* pde = (pde_t *)&pgdir[PDX((uintptr_t)va)];
 	// If entry exist return the table entry
 	if (*pde & PTE_P) {
 		pte_t *table = KADDR(PTE_ADDR(*pde));
@@ -466,19 +466,19 @@ boot_map_region(pde_t *pgdir, uintptr_t va, size_t size, physaddr_t pa, int perm
 int
 page_insert(pde_t *pgdir, struct PageInfo *pp, void *va, int perm)
 {
-	// Fill this function in
-	pte_t * pte = pgdir_walk(pgdir, va, 1);
-	if (!pte) return -E_NO_MEM;
-	if (*pte & PTE_P) {
-		if (PTE_ADDR(*pte) == page2pa(pp)) {
-			*pte = PTE_ADDR(*pte);
-			*pte = *pte | PTE_P | perm;
-			return 0;
-		}
-		page_remove(pgdir, va);
+	pte_t* pte =pgdir_walk(pgdir,va,1);
+	if (!pte)	return -E_NO_MEM;
+	if (PTE_ADDR(*pte) == page2pa(pp)){
+		if ((*pte & 0x1ff)==perm)	return 0;
+		*pte = page2pa(pp) |perm|PTE_P;
+		tlb_invalidate(pgdir,va);
+		return 0;
 	}
-	*pte = (pte_t) (page2pa(pp) | perm | PTE_P);
+	if(*pte & PTE_P){
+			page_remove(pgdir,va);
+	}
 	pp->pp_ref++;
+	*pte = page2pa(pp) | perm | PTE_P;
 	return 0;
 }
 
