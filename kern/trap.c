@@ -176,6 +176,9 @@ trap_dispatch(struct Trapframe *tf)
 		            tf->tf_regs.reg_edi,
 		            tf->tf_regs.reg_esi);
 		    return;
+		case T_DEBUG:
+			monitor(tf);
+			return;
 	}
 	// Unexpected trap: The user process or the kernel has a bug.
 	print_trapframe(tf);

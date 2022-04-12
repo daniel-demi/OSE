@@ -21,12 +21,6 @@ sys_cputs(const char *s, size_t len)
 	// Destroy the environment if not.
 
 	// LAB 3: Your code here.
-    //~ pte_t *pte;
-    //~ page_lookup(curenv->env_pgdir, (void *)s, &pte);
-    //~ if (!(*pte & PTE_U)) {
-		//~ 
-		//~ env_destroy(curenv);
-	//~ }
 
 	// Print the string supplied by the user.
 	user_mem_assert(curenv, s, len, PTE_U);

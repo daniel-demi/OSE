@@ -27,14 +27,29 @@ static struct Command commands[] = {
 	{ "help", "Display this list of commands", mon_help },
 	{ "kerninfo", "Display information about the kernel", mon_kerninfo },
 	{"showmappings", "Display the physical page mappings", show_mappings},
+	{"backtrace", "", mon_backtrace},
 	{"set-perm","", set_perm},
 	{"clear-perm", "", clear_perm},
 	{"change-perm", "", change_perm},
-	{"dump","",dump}
+	{"dump","",dump},
+	{"continue", "", mon_continue},
+	{"step", "", mon_step}
 };
 #define NCOMMANDS (sizeof(commands)/sizeof(commands[0]))
 
 /***** Implementations of basic kernel monitor commands *****/
+
+int mon_continue(int argc, char** argv, struct Trapframe *tf) {
+	uint32_t *eflags = &(tf->tf_eflags);
+	*eflags &= ~(FL_TF); // Turn off trap flag
+	return -1; // resume env
+}
+
+int mon_step(int argc, char** argv, struct Trapframe *tf) {
+	uint32_t *eflags = &(tf->tf_eflags);
+	*eflags |= FL_TF; // Turn on trap flag for single-stepping
+	return -1;
+}
 
 int
 mon_help(int argc, char **argv, struct Trapframe *tf)
