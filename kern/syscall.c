@@ -21,12 +21,12 @@ sys_cputs(const char *s, size_t len)
 	// Destroy the environment if not.
 
 	// LAB 3: Your code here.
-    // pte_t *pte;
-    // page_lookup(curenv->env_pgdir, (void *)s, &pte);
-    // if (!(*pte & PTE_U)) {
-	// 	
-	// 	env_destroy(curenv);
-	// }
+    //~ pte_t *pte;
+    //~ page_lookup(curenv->env_pgdir, (void *)s, &pte);
+    //~ if (!(*pte & PTE_U)) {
+		//~ 
+		//~ env_destroy(curenv);
+	//~ }
 
 	// Print the string supplied by the user.
 	user_mem_assert(curenv, s, len, PTE_U);
@@ -76,7 +76,6 @@ syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, 
 	// Call the function corresponding to the 'syscallno' parameter.
 	// Return any appropriate return value.
 	// LAB 3: Your code here.
-    
 
 	switch (syscallno) {
 	case SYS_cputs:
