@@ -15,8 +15,10 @@ umain(int argc, char **argv)
 	for (i = 0; i < ARRAYSIZE; i++)
 		if (bigarray[i] != 0)
 			panic("bigarray[%d] isn't cleared!\n", i);
+	// cprintf("Making sure bss works right...\n");		
 	for (i = 0; i < ARRAYSIZE; i++)
 		bigarray[i] = i;
+	// cprintf("Making sure bss works right...\n");
 	for (i = 0; i < ARRAYSIZE; i++)
 		if (bigarray[i] != i)
 			panic("bigarray[%d] didn't hold its value!\n", i);

@@ -350,35 +350,34 @@ load_icode(struct Env *e, uint8_t *binary)
 	struct Elf * elf = ((struct Elf *) binary);
 	if (elf->e_magic != ELF_MAGIC) 
 		panic("Invalid binary - Not elf file\n");
-	cprintf("dgb: before cr3\n");
 	lcr3(PADDR(e->env_pgdir));
-	cprintf("dbg: after cr3\n");
+
 	struct Proghdr *ph, *eph;
 	ph = (struct Proghdr *) (binary + elf->e_phoff);
 	eph = ph + elf->e_phnum;
-	int dbg = 0;
-	for(; ph < eph; ph++, dbg++) {
+
+	for(; ph < eph; ph++) {
 		if(ph->p_type == ELF_PROG_LOAD) {
-			cprintf("dbg: iter[%d] => 1\n", dbg);
+
 			region_alloc(e, (void* )(ph->p_va), ph->p_memsz);
-			cprintf("dbg: iter[%d] => 2\n", dbg);
+
 			memset((void* )(ph->p_va), 0, ph->p_memsz);
-			cprintf("dbg: iter[%d] => 3\n", dbg);
+
 			memcpy((void* )(ph->p_va), (void *)(binary + ph->p_offset), ph->p_filesz);
-			cprintf("dbg: iter[%d] => 4\n", dbg);
+
 		}
 	}
 	// Now map one page for the program's initial stack
 	// at virtual address USTACKTOP - PGSIZE.
 
 	// LAB 3: Your code here.
-	cprintf("dbg: before stack alloc\n");
+
 	region_alloc(e, (void *)(USTACKTOP - PGSIZE), PGSIZE);
-	cprintf("dbg: after stack alloc\n");
+
 	e->env_tf.tf_eip = elf->e_entry;
-	cprintf("dgb: before cr3 again\n");
+
 	lcr3(PADDR(kern_pgdir));
-	cprintf("dgb: after cr3 again\n");
+
 	
 }
 
@@ -513,17 +512,17 @@ env_run(struct Env *e)
 	//	e->env_tf to sensible values.
 
 	// LAB 3: Your code here.
-	cprintf("dbg: run\n");
+
 	if (curenv && curenv->env_status == ENV_RUNNING) {
 		curenv->env_status = ENV_RUNNABLE;
 	}
 	curenv = e;
 	curenv->env_status = ENV_RUNNING;
 	curenv->env_runs++;
-	cprintf("dbg: run -> before cr3\n");
+
 	lcr3(PADDR(curenv->env_pgdir));
-	cprintf("dbg: run -> after cr3\n");
+
 	env_pop_tf(&(curenv->env_tf));
-	cprintf("dbg: end\n");
+
 }
 
