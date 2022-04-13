@@ -1,0 +1,28 @@
+//gets va and int which has permissions
+void set_perm (int argc, char **argv, struct Trapframe *tf){ //int va, int perm
+	if (argv != 2) cprintf("Incorrect amount of arguments");
+	void* va  = str2hex(argv[0]);
+	uint32_t perm = 0xFFF & str2hex(argv[1]);
+	pte_t* page_table = pgdir_walk(kern_pagedir, va, 0);
+	if(!page_table) cprintf("No page at this address");
+	*page_table |= perm;
+}
+
+//gets va and clears all permissions for that address
+void clear_perm(int argc, char **argv, struct Trapframe *tf){ //int va
+	if (argv != 1) cprintf("Incorrect amount of arguments");
+	void* va  = str2hex(argv[0]);
+	pte_t* page_table = pgdir_walk(kern_pagedir, va, 0);
+	if(!page_table) cprintf("No page at this address");
+	*page_table = PTE_ADDR(*page_table);
+}
+
+//gets va and permissions that the user wants to change
+int change_perm(int argc, char **argv, struct Trapframe *tf){ //int va, int perm
+	if (argv != 2) cprintf("Incorrect amount of arguments");
+	void* va  = str2hex(argv[0]);
+	uint32_t perm = 0xFFF & str2hex(argv[1]);
+	pte_t* page_table = pgdir_walk(kern_pagedir, va, 0);
+	if(!page_table) cprintf("No page at this address");
+	*page_table = *page_table^perm;
+}
