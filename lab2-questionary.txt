@@ -53,16 +53,16 @@ uintptr_t
 ===    ...
 ===    42    0x98765 "struct Segdesc gdt[]" "Global descriptor table"
 ===    50    0x00011 ""                     "boot loader code"
-1023    0xFFC00000    "Page table for the top physical memory"
-...     ...           "Page table - RAM mappings"
-960     0xF0000000    "Page table - RAM mappings"
-959     0xEFC00000    "Kernel stack"
-958     0xEF800000    "Unmapped"
-957     0xEF400000    "Page table at UVPT"
-956     0xEF000000    "Page table for the PageInfo array"
-955     0xEEC00000    "Unmapped"
-...     ...           "Unmapped"
-0       0x00000000    "Unmapped"
+1023    0xFFC00000    "pte_t"                     "Page table for the top physical memory"
+...     ...           ""                          "Page table - RAM mappings"
+960     0xF0000000    "pte_t"                     "Page table - RAM mappings"
+959     0xEFC00000    "char bootstack[]"          "Kernel stack"
+958     0xEF800000    ""                          "Unmapped"
+957     0xEF400000    "pde_t kern_pgdir[]"        "Page table at UVPT"
+956     0xEF000000    "struct PageInfo *pages"    "Page table for the PageInfo array"
+955     0xEEC00000    ""                          "Unmapped"
+...     ...           ""                          "Unmapped"
+0       0x00000000    ""                          "Unmapped"
 
 === Q We have placed the kernel and user environment in the same
 ===   address space. Why will user programs not be able to read or
