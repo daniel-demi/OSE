@@ -16,7 +16,7 @@
 === Q What's the purpose of leaving virtual memory region
 ===   0xeebfe000-0xeebff000 inaccessible?
 ===   (free form, up to 10 words)
-
+So any overflow doesn't hit filled pages but blank ones
 === Q Define a page table entry with the following properties:
 ===   frame starts at 0x1234000. It can be written by the kernel
 ===   without causing any errors, but has never been written yet. On
@@ -24,7 +24,7 @@
 ===   recently successfully read from it. All bits which are not
 ===   responsible for above properties are set to zero.  
 ===   (a single memory WORD as would be output by gdb's x/1x)
-
+0x1234025
 === Q Consider JOS kernel code:
 ===     mystery_t x;
 ===   	char* value = return_a_pointer();
@@ -32,7 +32,7 @@
 ===   	x = (mystery_t) value;
 ===   What type mystery_t should refer to?
 ===   (remove leading "====" from the correct answer line)
-==== uintptr_t
+uintptr_t
 ==== physaddr_t
 
 
@@ -59,18 +59,19 @@
 ===   write the kernel's memory? What specific mechanisms protect the
 ===   kernel memory?
 ===   (free form, up to 15 words)
-
+Perrmissions. We set permissions in the page table to stop the user from 
+accessing kernel memory
 === Q Which virtual addresses are readable by the user?
 ===   (in the form ADDR1-ADDR2, if none, specify NONE)
-
+0x00000000-0xef800000
 === Q Which virtual addresses are writable by the user?
 ===   (in the form ADDR1-ADDR2, if none, specify NONE)
-
+0x00000000-0xeec00000
 === Q Assume a hacker can change N bits inside page table (on any
 ===   level, PD or PT) after it has been set up by the kernel (and
 ===   before full TLB flush). What is the minimal N to gain full
 ===   control of the system from hacker's user space process?
-
+2 - Write and User flags
 === Q What's the maximum amount of physical memory this kernel can
 ===   support? (number of megabytes, without MB suffix)
 
@@ -97,13 +98,32 @@
 ===    SIZE  DATA-STRUCTURE         NAME/DESCRIPTION
 ===    42    "struct Segdesc gdt[]" "Global descriptor table"
 
+
 ====================================================================
 === Q What challenge(s) have you chosen to implement? (specify
 ===   challenge numbers separated by spaces, if more than one)
-
+2
 === Q If the challenge requires changing the kernel source, list the
 ===   files which you have changed/added during implementation.
 ===   (one file per line, relative to lab directory containing .git/)
-
+kern/monitor.c kern/monitor.h
 === Q Describe your solution.
 ===   (free form, up to 500 words, don't need to use all 500!)
+We added a few differrent functions:
+1. We added a command "showmappings" which goes through each page between the 2
+addresses given in a loop and prints the virtual address, the corresponding 
+physical address, and the permissions set for that page (through function 
+page_lookup and the various macros given to us).
+2. We added commands set, clear, and change. When calling that command the user
+needs to specify a virtual address, the permissions they want to 
+set/clear/change, and the appropriate permissions for that page will be 
+changed. The functions associated with those commands will then find the 
+corresponding page's PTE entry and change the permission bits in the entry 
+accordingly.
+3. We added a command called "dump". When calling this command one needs to 
+specify if the range of addresses is a physical range or a virtual range. 
+The command will dump the virtual address and physical address of the page/s,
+along with the memory stored in that/those page/s. In that function we use
+pgdir_walk in order to find the correct pages.
+4. We added a function "str2hex" that takes the string we get as an argument
+for the command and returns that string in hex form.
