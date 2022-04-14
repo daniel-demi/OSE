@@ -454,7 +454,7 @@ page_insert(pde_t *pgdir, struct PageInfo *pp, void *va, int perm)
 	if (*pte & PTE_P) {
 		if (PTE_ADDR(*pte) == page2pa(pp)) {
 			*pte = PTE_ADDR(*pte);
-			*pte = *pte | PTE_P |perm;
+			*pte = *pte | PTE_P | perm;
 			return 0;
 		}
 		page_remove(pgdir, va);

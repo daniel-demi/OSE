@@ -19,5 +19,6 @@ int show_mappings(int argc, char **argv, struct Trapframe *tf);
 int set_perm (int argc, char **argv, struct Trapframe *tf);
 int clear_perm(int argc, char **argv, struct Trapframe *tf);
 int change_perm(int argc, char **argv, struct Trapframe *tf);
+int dump(int argc, char **argv, struct Trapframe *tf);
 
 #endif	// !JOS_KERN_MONITOR_H

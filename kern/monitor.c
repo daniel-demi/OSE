@@ -28,7 +28,8 @@ static struct Command commands[] = {
 	{"showmappings", "Display the physical page mappings", show_mappings},
 	{"set-perm","", set_perm},
 	{"clear-perm", "", clear_perm},
-	{"change-perm", "", change_perm}
+	{"change-perm", "", change_perm},
+	{"dump","",dump}
 };
 #define NCOMMANDS (sizeof(commands)/sizeof(commands[0]))
 
@@ -206,6 +207,44 @@ int change_perm(int argc, char **argv, struct Trapframe *tf){ //int va, int perm
 	}
 	*page_table = *page_table^perm;
 	return 0;
+}
+
+int dump (int argc, char** argv, struct Trapframe* tf){
+	if(argc != 4){
+		cprintf("Incorrect number of arguments\n");
+		return -1;		
+	}
+	if(strcmp(argv[1],"virtual") == 0) {
+		uint32_t v_addr = str2hex(argv[2]), end_addr = str2hex(argv[3]);
+		void* va;
+		pte_t* page_table;
+		for (; v_addr <= end_addr; v_addr+=PGSIZE){
+			v_addr = PTE_ADDR(v_addr);
+			va = (void*) v_addr;
+			page_table = pgdir_walk(kern_pgdir, va, 0);
+			if (!page_table	)
+				cprintf("No physical page mapped to address %08x\n",v_addr);
+			else //print page
+				cprintf("Virtual address: %08x    Physical address: %08x    Memory: %32x",v_addr,*page_table,*(uint32_t*)v_addr);	
+		}	
+		return 0;
+	}
+	else if (strcmp(argv[1],"physical")==0){
+		uint32_t pa =  str2hex(argv[2]);
+		uint32_t pa_end =  str2hex(argv[3]);
+		uint32_t va;
+		//uint32_t va_end = (uint32_t) KADDR(pa_end);
+		for (; pa <= pa_end; pa+= PGSIZE){
+			va = (uint32_t) KADDR(pa);	
+			cprintf("Virtual address: %08x    Physical address: %08x    Memory: %32x",va,pa,*(uint32_t*)va);
+		}
+		return 0;
+	}
+	else{
+		cprintf("Must choose \"physical\" or \"virtual\" as address type (second argument)\n");
+		return -1;
+	}
+	
 }
 
 /***** Kernel monitor command interpreter *****/
