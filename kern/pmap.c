@@ -9,10 +9,10 @@
 #include <kern/pmap.h>
 #include <kern/kclock.h>
 
-int debug = 0;
-void debug_msg(const char* msg) {
-    cprintf("DEBUG: %d => %s\n", debug, msg);
-}
+// int debug = 0;
+// void debug_msg(const char* msg) {
+//     cprintf("DEBUG: %d => %s\n", debug, msg);
+// }
 
 // These variables are set by i386_detect_memory()
 size_t npages;			// Amount of physical memory (in pages)
@@ -813,9 +813,7 @@ check_page(void)
 	// should be able to remap with fewer permissions
 	assert(page_insert(kern_pgdir, pp2, (void*) PGSIZE, PTE_W) == 0);
 	assert(*pgdir_walk(kern_pgdir, (void*) PGSIZE, 0) & PTE_W);
-	debug = 1;
 	assert(!(*pgdir_walk(kern_pgdir, (void*) PGSIZE, 0) & PTE_U));
-	debug = 0;
 
 	// should not be able to map at PTSIZE because need free page for page table
 	assert(page_insert(kern_pgdir, pp0, (void*) PTSIZE, PTE_W) < 0);
