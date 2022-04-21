@@ -119,7 +119,7 @@ env_init(void)
     env_free_list = &envs[0];
     int i;
     for(i = 1; i < NENV; i++) {
-        envs[i - 1].env_link = envs[i];
+        envs[i - 1].env_link = &envs[i];
     }
     envs[NENV - 1].env_link = NULL;
 	// Per-CPU part of the initialization
@@ -185,7 +185,7 @@ env_setup_vm(struct Env *e)
 
 	// LAB 3: Your code here.
     e->env_pgdir = (pde_t *)page2kva(p);
-    e->pp_ref++;
+    p->pp_ref++;
 	// UVPT maps the env's own page table read-only.
 	// Permissions: kernel R, user R
 	e->env_pgdir[PDX(UVPT)] = PADDR(e->env_pgdir) | PTE_P | PTE_U;
@@ -276,7 +276,7 @@ region_alloc(struct Env *e, void *va, size_t len)
 
     void * new_va = (void *)((uintptr_t)va - PGOFF(va));
     size_t new_len = ROUNDUP((size_t)va + len, PGSIZE) - (size_t)new_va;
-    for(; new_va < new_len; new_va += PGSIZE) {
+    for(; (uintptr_t)new_va < new_len; new_va += PGSIZE) {
         struct PageInfo * p = page_alloc(0);
         if(!p) panic("region_alloc: failed to allocate page");
         if(page_insert(e->env_pgdir, p, new_va, PTE_U | PTE_W))
