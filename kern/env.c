@@ -116,14 +116,14 @@ env_init(void)
 {
 	// Set up envs array
 	// LAB 3: Your code here.
-    env_free_list = &envs[0];
-    envs[0].env_id = 0;
-    int i;
-    for(i = 1; i < NENV; i++) {
-        envs[i - 1].env_link = &envs[i];
-        envs[i].env_id = 0;
-    }
-    envs[NENV - 1].env_link = NULL;
+	env_free_list = &envs[0];
+	envs[0].env_id = 0;
+	int i;
+	for(i = 1; i < NENV; i++) {
+		envs[i - 1].env_link = &envs[i];
+		envs[i].env_id = 0;
+	}
+	envs[NENV - 1].env_link = NULL;
 	// Per-CPU part of the initialization
 	env_init_percpu();
 }
@@ -172,23 +172,23 @@ env_setup_vm(struct Env *e)
 	// Now, set e->env_pgdir and initialize the page directory.
 	//
 	// Hint:
-	//    - The VA space of all envs is identical above UTOP
+	//	- The VA space of all envs is identical above UTOP
 	//	(except at UVPT, which we've set below).
 	//	See inc/memlayout.h for permissions and layout.
 	//	Can you use kern_pgdir as a template?  Hint: Yes.
 	//	(Make sure you got the permissions right in Lab 2.)
-	//    - The initial VA below UTOP is empty.
-	//    - You do not need to make any more calls to page_alloc.
-	//    - Note: In general, pp_ref is not maintained for
+	//	- The initial VA below UTOP is empty.
+	//	- You do not need to make any more calls to page_alloc.
+	//	- Note: In general, pp_ref is not maintained for
 	//	physical pages mapped only above UTOP, but env_pgdir
 	//	is an exception -- you need to increment env_pgdir's
 	//	pp_ref for env_free to work correctly.
-	//    - The functions in kern/pmap.h are handy.
+	//	- The functions in kern/pmap.h are handy.
 
 	// LAB 3: Your code here.
-    e->env_pgdir = (pde_t *)page2kva(p);
-    memcpy(e->env_pgdir, kern_pgdir, PGSIZE);
-    p->pp_ref++;
+	e->env_pgdir = (pde_t *)page2kva(p);
+	memcpy(e->env_pgdir, kern_pgdir, PGSIZE);
+	p->pp_ref++;
 	// UVPT maps the env's own page table read-only.
 	// Permissions: kernel R, user R
 	e->env_pgdir[PDX(UVPT)] = PADDR(e->env_pgdir) | PTE_P | PTE_U;
@@ -277,19 +277,19 @@ region_alloc(struct Env *e, void *va, size_t len)
 	//   You should round va down, and round (va + len) up.
 	//   (Watch out for corner-cases!)
 	if (!len) return;
-    //void * new_va = (void *)((uintptr_t)va - PGOFF(va));
-    uintptr_t new_va = ROUNDDOWN((uintptr_t)va, PGSIZE);
-    size_t new_len = ROUNDUP((size_t)va + len, PGSIZE) - (size_t)new_va;
-    int i;
-    for(i = 0; i * PGSIZE < new_len; new_va += PGSIZE, i++) {
-        struct PageInfo * p = page_alloc(0);
-        if(!p) {
+	// Align the top and bottom boarders to page size
+	uintptr_t new_va = ROUNDDOWN((uintptr_t)va, PGSIZE);
+	size_t new_len = ROUNDUP((size_t)va + len, PGSIZE) - (size_t)new_va;
+	int i;
+	for(i = 0; i * PGSIZE < new_len; new_va += PGSIZE, i++) {
+		struct PageInfo * p = page_alloc(0);
+		if(!p) {
 			panic("region_alloc: failed to allocate page");
 		}
-        if(page_insert(e->env_pgdir, p, (void *)new_va, PTE_U | PTE_W)) {
-            panic("region_alloc: failed to insert page");
+		if(page_insert(e->env_pgdir, p, (void *)new_va, PTE_U | PTE_W)) {
+			panic("region_alloc: failed to insert page");
 		}
-    }
+	}
 }
 
 //
@@ -350,32 +350,26 @@ load_icode(struct Env *e, uint8_t *binary)
 	struct Elf * elf = ((struct Elf *) binary);
 	if (elf->e_magic != ELF_MAGIC) 
 		panic("Invalid binary - Not elf file\n");
+	// Change to user space
 	lcr3(PADDR(e->env_pgdir));
-
 	struct Proghdr *ph, *eph;
 	ph = (struct Proghdr *) (binary + elf->e_phoff);
 	eph = ph + elf->e_phnum;
-
+    // Iterate over the program headers and load the segments into the memory.
 	for(; ph < eph; ph++) {
 		if(ph->p_type == ELF_PROG_LOAD) {
-
 			region_alloc(e, (void* )(ph->p_va), ph->p_memsz);
-
 			memset((void* )(ph->p_va), 0, ph->p_memsz);
-
 			memcpy((void* )(ph->p_va), (void *)(binary + ph->p_offset), ph->p_filesz);
-
 		}
 	}
 	// Now map one page for the program's initial stack
 	// at virtual address USTACKTOP - PGSIZE.
 
 	// LAB 3: Your code here.
-
 	region_alloc(e, (void *)(USTACKTOP - PGSIZE), PGSIZE);
-
 	e->env_tf.tf_eip = elf->e_entry;
-
+    // Change back to kernel space
 	lcr3(PADDR(kern_pgdir));
 
 	
@@ -496,8 +490,8 @@ env_run(struct Env *e)
 {
 	// Step 1: If this is a context switch (a new environment is running):
 	//	   1. Set the current environment (if any) back to
-	//	      ENV_RUNNABLE if it is ENV_RUNNING (think about
-	//	      what other states it can be in),
+	//		  ENV_RUNNABLE if it is ENV_RUNNING (think about
+	//		  what other states it can be in),
 	//	   2. Set 'curenv' to the new environment,
 	//	   3. Set its status to ENV_RUNNING,
 	//	   4. Update its 'env_runs' counter,
