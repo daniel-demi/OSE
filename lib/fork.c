@@ -78,7 +78,23 @@ envid_t
 fork(void)
 {
 	// LAB 4: Your code here.
-	panic("fork not implemented");
+	//set page handler
+	set_pgfault_handler(pgfault);
+	//create child 
+	int id = sys_exofork();
+	if (id<0) return id;
+	if (id==0){
+		thisenv = &envs[ENVX(sys_getenvid())];
+		return id;
+	}
+
+	//mark child as runnable and return 
+	int res = sys_env_set_status(id,ENV_RUNNABLE);
+	if (res<0) return res;
+	return id;
+
+	// int res = duppage(id, ) //envid, pagenumber. Returns int
+	// panic("fork not implemented");
 }
 
 // Challenge!
