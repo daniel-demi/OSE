@@ -29,6 +29,10 @@ set_pgfault_handler(void (*handler)(struct UTrapframe *utf))
 	if (_pgfault_handler == 0) {
 		// First time through!
 		// LAB 4: Your code here.
+		//allocate exception stack (should be 1 page)
+		//int	sys_page_alloc(envid_t env, void *pg, int perm);
+		int res = sys_page_alloc(curenv->env_id, UXSTACKTOP-PGSIZE, PTE_W)
+		//call _pgfault_upcall
 		panic("set_pgfault_handler not implemented");
 	}
 

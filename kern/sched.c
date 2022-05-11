@@ -29,45 +29,30 @@ sched_yield(void)
 	// below to halt the cpu.
 
 	// LAB 4: Your code here.
-	//~ if(curenv) {
+	bool check=false;
 		//~ cprintf("dbg: %s:%d\n",__FILE__,__LINE__);
-		//~ int curr_idx = ENVX(curenv->env_id);
-		//~ int i;
-		//~ for(i = 0; i < NENV; i++) {
-			//~ int idx = (curr_idx + i + 1) % NENV;
-			//~ if(envs[i].env_status == ENV_RUNNABLE) {
-				//~ env_run(&envs[idx]);
-				//~ break;
-			//~ }
-		//~ }
-		//~ if (curenv->env_status == ENV_RUNNING) {
-			//~ env_run(curenv);
-		//~ }
-	//~ }
-	//~ // sched_halt never returns
-	//~ sched_halt();
-	//~ panic("shced_yield: returned");
-	
-	int begin = curenv ? ENVX(curenv->env_id) + 1 : 0;
-	int index = begin;
-	bool found = false;
-	int i;
-	for (i = 0; i < NENV; i++) {
-	index = (begin + i) % NENV;
-	if (envs[index].env_status == ENV_RUNNABLE) {
-	found = true;
-	break;
+	int curr_idx, i;
+	if (curenv)
+		curr_idx = ENVX(curenv->env_id);
+	else
+		curr_idx=0;
+	for(i = 0; i < NENV; i++) {
+		int idx = (curr_idx + i + 1) % NENV;
+		if(envs[idx].env_status == ENV_RUNNABLE) {
+			env_run(&envs[idx]);
+			check = true;
+			break;
+		}
 	}
+	if (curenv->env_status == ENV_RUNNING && !check) {
+		env_run(curenv);
+		check = true;
 	}
 	
-	if (found) {
-	env_run(&envs[index]);
-	} else if (curenv && curenv->env_status == ENV_RUNNING) {
-	env_run(curenv);
-	} else {
-	sched_halt();
-	}
-	panic("sched_yield attempted to return");
+	 // sched_halt never returns
+	if (!check)
+	 	sched_halt();
+	panic("shced_yield: returned");
 }
 
 // Halt this CPU when there is nothing to do. Wait until the

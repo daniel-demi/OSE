@@ -257,7 +257,7 @@ trap(struct Trapframe *tf)
 	// the interrupt path.
 	assert(!(read_eflags() & FL_IF));
 
-	cprintf("Incoming TRAP frame at %p\n", tf);
+	//cprintf("Incoming TRAP frame at %p\n", tf);
 
 	if ((tf->tf_cs & 3) == 3) {
 		// Trapped from user mode.
@@ -355,7 +355,7 @@ page_fault_handler(struct Trapframe *tf)
 		env_destroy(curenv);
 	}
 	uintptr_t tftop;
-	if ((tf->tf_esp >= (USTACKTOP - PGSIZE)) && tf->tf_esp < USTACKTOP)
+	if ((tf->tf_esp >= (UXSTACKTOP - PGSIZE)) && tf->tf_esp < UXSTACKTOP)
 		tftop = tf->tf_esp-4;
 	else
 		tftop = UXSTACKTOP;
@@ -371,7 +371,7 @@ page_fault_handler(struct Trapframe *tf)
 	utf->utf_esp = tf->tf_esp;
 
 	curenv->env_tf.tf_eip = (uintptr_t)(curenv->env_pgfault_upcall);
-	curenv-> env_tf.tf_esp = (uintprt_t)utf;
+	curenv-> env_tf.tf_esp = (uintptr_t)utf;
 	env_run(curenv);
 
 }

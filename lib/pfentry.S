@@ -65,18 +65,33 @@ _pgfault_upcall:
 	// ways as registers become unavailable as scratch space.
 	//
 	// LAB 4: Your code here.
+	//put in trap-time esp,eip
+	//make space for new eip that we need to put in
+	//The stack view from ebx:
+	// 0:fault_va 	4:err 	8:regs(32 bytes) 	40:eip	44:eflags	48:esp
+
+	movl 48(%esp), %eax //move esp to eax
+	movl 40(%esp), %ebx //move eip to ebx
+	subl $4, %eax //move the stack pointer to make room for the eip that we're going to push
+	movl %ebx, (%eax) //put eip into the space freed in the stack
+	movl %eax, 48(%esp) //return the stack pointer
 
 	// Restore the trap-time registers.  After you do this, you
 	// can no longer modify any general-purpose registers.
 	// LAB 4: Your code here.
+	addl $8, %esp //we need to remove fault_va nad err in order to get to the registers. Also, we don't need these registers
+	popal //popping registers
 
 	// Restore eflags from the stack.  After you do this, you can
 	// no longer use arithmetic operations or anything else that
 	// modifies eflags.
 	// LAB 4: Your code here.
+	addl $4, %esp //getting rid of our now useless eip
+	popfl //popping flags
 
 	// Switch back to the adjusted trap-time stack.
 	// LAB 4: Your code here.
-
+	popl %esp
 	// Return to re-execute the instruction that faulted.
 	// LAB 4: Your code here.
+	ret

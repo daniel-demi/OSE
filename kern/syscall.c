@@ -84,15 +84,19 @@ sys_exofork(void)
 	// from the current environment -- but tweaked so sys_exofork
 	// will appear to return 0.
 
+	//cprintf("dbg: %s:%d\n",__FILE__,__LINE__);
+
 	struct Env* env = NULL;
 	envid_t id = curenv->env_id;
 	int res = env_alloc(&env, id);
-	if (res < 0) return res;
-
+	if (res < 0) {
+		// cprintf("dbg: %s:%d\n",__FILE__,__LINE__);
+		return res;
+	}
 	memcpy(&env->env_tf, &curenv->env_tf,  sizeof(env->env_tf));
 
 	env->env_status = ENV_NOT_RUNNABLE;
-	env->env_tf.tf_regs.reg_eax = 0;2
+	env->env_tf.tf_regs.reg_eax = 0;
 	//cprintf("envid before return: %d\n", env->env_id);
 	return env->env_id;
 
@@ -359,6 +363,18 @@ syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, 
 	case SYS_yield:
 		sys_yield();
 		break;
+	case SYS_exofork:
+		return sys_exofork();
+	case SYS_page_alloc:
+		return sys_page_alloc((envid_t)a1,(void*)a2,(int)a3);
+	case SYS_env_set_status:
+		return sys_env_set_status((envid_t) a1,(int) a2);
+	case SYS_page_map:
+		return sys_page_map((envid_t)a1,(void*)a2,(envid_t)a3,(void*)a4,(int)a5);
+	case SYS_page_unmap:
+		return sys_page_unmap((envid_t)a1,(void*)a2);
+	case SYS_env_set_pgfault_upcall:
+		return sys_env_set_pgfault_upcall((envid_t) a1, (void*) a2);
 	default:
 		return -E_INVAL;
 	}
