@@ -122,7 +122,7 @@ sys_env_set_status(envid_t envid, int status)
 	// envid's status.
 
 	// LAB 4: Your code here.
-	if (status>4 || status<0) return -E_INVAL;
+	if (status != ENV_RUNNABLE && status != ENV_NOT_RUNNABLE) return -E_INVAL;
 	struct Env* env =NULL; 
 	int res = envid2env(envid, &env, 1);
 	if (res<0) return res;
@@ -182,15 +182,20 @@ sys_page_alloc(envid_t envid, void *va, int perm)
 
 	//make sure permissions are legal
 	if (!(perm & PTE_U) || !(PTE_P & perm)) return -E_INVAL;
-	int check_perms = PTE_U | PTE_P | PTE_AVAIL | PTE_W;
-	if (perm & ~check_perms) return -E_INVAL;
+	if (perm & ~PTE_SYSCALL) return -E_INVAL;
+	uintptr_t nva = (uintptr_t) va;
 	
 	struct PageInfo* pp = page_alloc(ALLOC_ZERO);
+	if (!pp) return -E_NO_MEM;
+	if(nva >= UTOP || nva%PGSIZE) return -E_INVAL;
 	struct Env* env = NULL;
 	int res = envid2env(envid,&env,1);
 	if (res<0) return res;
 	res = page_insert(env->env_pgdir, pp, va, perm);
-	if (res<0) return res;
+	if (res<0) {
+		page_free(pp);
+		return res;
+	}
 	return 0;
 
 //	panic("sys_page_alloc not implemented");
@@ -225,9 +230,8 @@ sys_page_map(envid_t srcenvid, void *srcva,
 
 	// LAB 4: Your code here.
 	//make sure permissions are legal
-	// if (!(perm & PTE_U) || !(PTE_P & perm) || !(PTE_W & perm)) return -E_INVAL;
-	// int check_perms = PTE_U | PTE_P | PTE_AVAIL | PTE_W;
-	// if (perm & ~check_perms) return -E_INVAL;
+	if (!(perm & PTE_U) || !(PTE_P & perm) ) return -E_INVAL;
+	if (perm & ~PTE_SYSCALL) return -E_INVAL;
 	// 
 	// //check addresses of srcva and dstva
 	if ((uintptr_t) srcva >= UTOP ||(uintptr_t) dstva >= UTOP) return -E_INVAL;
@@ -244,44 +248,15 @@ sys_page_map(envid_t srcenvid, void *srcva,
 	//get page and check permissions of page
 	pte_t* pte;
 	struct PageInfo* pp = page_lookup(src_env->env_pgdir, srcva, &pte);
-	if (!(*pte & PTE_W)) return -E_INVAL;
+	if(!pp) return -E_INVAL;
+	if (!(*pte & PTE_W) && (perm & PTE_W)) return -E_INVAL;
 
 	//copy mapping
 	res = page_insert(dst_env->env_pgdir, pp, dstva, perm);
 	if (res<0) return res;
 	
 	return 0;
-    // if ((perm & ~PTE_SYSCALL) != 0) {
-	// 	return -E_INVAL;
-	// }
-
-	// uintptr_t srcaddr = (uintptr_t)srcva, destaddr = (uintptr_t)dstva;
-	// if (srcaddr >= UTOP || destaddr >= UTOP
-	//     || srcaddr % PGSIZE != 0 || destaddr % PGSIZE) {
-	// 	return -E_INVAL;
-	// }
-
-	// struct Env *src, *dest;
-	// int err;
-	// if ((err = envid2env(srcenvid, &src, 1)) < 0) {
-	// 	return err;
-	// }
-	// if ((err = envid2env(dstenvid, &dest, 1)) < 0) {
-	// 	return err;
-	// }
-
-	// pte_t *srcpte;
-	// struct PageInfo *p = page_lookup(src->env_pgdir, srcva, &srcpte);
-	// if (!p) {
-	// 	return -E_INVAL;
-	// } else if ((perm & PTE_W) && !(*srcpte & PTE_W)) {
-	// 	return -E_INVAL;
-	// }
-
-	// if ((err = page_insert(dest->env_pgdir, p, dstva, perm)) < 0) {
-	// 	return err;
-	// }
-	// return 0;
+   
 
 //	panic("sys_page_map not implemented");
 }

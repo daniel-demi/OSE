@@ -38,8 +38,11 @@ pgfault(struct UTrapframe *utf)
 
 	// LAB 4: Your code here.
     envid_t id = 0;//sys_getenvid();
-    int perms = (PGOFF(pte) & ~PTE_COW) | PTE_W;
-    r = sys_page_alloc(id, (void *)PFTEMP, perms);
+    
+	int perms = (PGOFF(pte) & ~PTE_COW) | PTE_W;
+    cprintf("id:%d   addr:%d   perms:%x\n",id,PFTEMP,perms);
+	r = sys_page_alloc(id, (void *)PFTEMP, perms);
+	
     if (r < 0) panic("pgfault: couldn't allocate page");
     void * page_addr = (void *)ROUNDDOWN((uintptr_t)addr,PGSIZE);
     memcpy(PFTEMP, page_addr, PGSIZE);
