@@ -29,12 +29,14 @@ wrong address since we are in the virtual address space.
 ===   which using a shared kernel stack will go wrong, even with the
 ===   protection of the big kernel lock.
 ===   (free form)
-
+We don't have a mechanism in place to stop multiple processors from pushing onto the kernel stack. 
+Therefore, if a processor put stuff on the stack and then another processor changed the stack we could 
+encounter a problem.
 === Q Whenever the kernel switches from one environment to another, it
 ===   must ensure the old environment's registers are saved so they
 ===   can be restored properly later. Where does this happen?
 ===   (JOS function name)
-
+trap
 === Q In your implementation of env_run() you should have called
 ===   lcr3(). Before and after the call to lcr3(), your code makes
 ===   references (at least it should) to the variable e, the argument
@@ -45,24 +47,39 @@ wrong address since we are in the virtual address space.
 ===   which the virtual address maps. Why can the pointer e be
 ===   dereferenced both before and after the addressing switch?
 ===   (one sentence, free form)
-
+The kernel is shared among all environments and therefore has the same mappings for different page directories.
 === Q In Ex. 9, what happens if the user environment runs out of
 ===   space on the exception stack?
 ===   (one setence, free form)
-
+The kernel will destroy the environment.
 === Q In dumpfork.c, the first time you call duppage(), the function
 ===   allocates a page in one environment (env A) and then maps it in
 ===   another (env B). At what address is the page mapped in env A, and
 ===   at what address is it mapped in env B?
 ===   (ADDR(in env A):ADDR(in env B) (example: 0xAAAAAAAA:0xBBBBBBBB)
-
+0x800000:0x400000
 ====================================================================
 === Q What challenge(s) have you chosen to implement? (specify
 ===   challenge numbers separated by spaces, if more than one)
-
+1
 === Q If the challenge requires changing the kernel source, list the
 ===   files which you have changed/added during implementation.
 ===   (one file per line, relative to lab directory containing .git/)
+kern/spinlock.h
+kern/spinlock.c
+kern/init.c
+kern/env.c
+kern/console.c
+kern/trap.c
+kern/sched.c
+kern/syscall.c
 
 === Q Describe you solution.
 ===   (free form, up to 500 words, don't need to use all 500!)
+Firstly, we broke up the big kernel lock into 4 different locks (sched, ipc, page_alloc, console).
+We needed to add those locks by defining them in spinlock.h. Before we changed it, there was only 1 lock, 
+now there are multiple that can be used for different things within the kernel. We changed the scheduling locks
+that were using the big lock with the schedule lock. We also added more locks around ipc communication in 
+syscall.c, console activities in console.c, page allocation in syscall.c and pmap.c, and scheduling in trap.c, 
+env.c, init.c, and sched.c. In addition, some of the files mentioned above we added locks that didn't exist previously
+so we needed to include spinlock.h to those files. 
