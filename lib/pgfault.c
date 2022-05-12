@@ -30,10 +30,11 @@ set_pgfault_handler(void (*handler)(struct UTrapframe *utf))
 		// First time through!
 		// LAB 4: Your code here.
 		//allocate exception stack (should be 1 page)
-		int res = sys_page_alloc(sys_getenvid(), (void*)(UXSTACKTOP-PGSIZE), PTE_P|PTE_W|PTE_U); //changed from sys_getenvid() and took away pte_p
+		envid_t id = sys_getenvid();
+		int res = sys_page_alloc(id, (void*)(UXSTACKTOP-PGSIZE), PTE_P|PTE_W|PTE_U);
 		if (res<0) panic("sys_page_alloc: %e", res);
 		//set function for pgfault handler to call
-		res = sys_env_set_pgfault_upcall(0, _pgfault_upcall);
+		res = sys_env_set_pgfault_upcall(id, _pgfault_upcall);
 		//panic("set_pgfault_handler not implemented");
 	}
 

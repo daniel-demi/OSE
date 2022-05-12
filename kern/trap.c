@@ -73,25 +73,25 @@ trap_init(void)
 	int i;
 
 	// LAB 3: Your code here.
-	SETGATE(idt[T_DIVIDE],  1, GD_KT, t_divide,  0);
-	SETGATE(idt[T_DEBUG],   1, GD_KT, t_debug,   0);
+	SETGATE(idt[T_DIVIDE],  0, GD_KT, t_divide,  0);
+	SETGATE(idt[T_DEBUG],   0, GD_KT, t_debug,   0);
 	SETGATE(idt[T_NMI],     0, GD_KT, t_nmi,     0);
-	SETGATE(idt[T_BRKPT],   1, GD_KT, t_brkpt,   3);
-	SETGATE(idt[T_OFLOW],   1, GD_KT, t_oflow,   0);
-	SETGATE(idt[T_BOUND],   1, GD_KT, t_bound,   0);
-	SETGATE(idt[T_ILLOP],   1, GD_KT, t_illop,   0);
-	SETGATE(idt[T_DEVICE],  1, GD_KT, t_device,  0);
+	SETGATE(idt[T_BRKPT],   0, GD_KT, t_brkpt,   3);
+	SETGATE(idt[T_OFLOW],   0, GD_KT, t_oflow,   0);
+	SETGATE(idt[T_BOUND],   0, GD_KT, t_bound,   0);
+	SETGATE(idt[T_ILLOP],   0, GD_KT, t_illop,   0);
+	SETGATE(idt[T_DEVICE],  0, GD_KT, t_device,  0);
 	SETGATE(idt[T_DBLFLT],  0, GD_KT, t_dblflt,  0);
-	SETGATE(idt[T_TSS],     1, GD_KT, t_tss,     0);
-	SETGATE(idt[T_SEGNP],   1, GD_KT, t_segnp,   0);
-	SETGATE(idt[T_STACK],   1, GD_KT, t_stack,   0);
-	SETGATE(idt[T_GPFLT],   1, GD_KT, t_gpflt,   0);
-	SETGATE(idt[T_PGFLT],   1, GD_KT, t_pgflt,   0);
-	SETGATE(idt[T_FPERR],   1, GD_KT, t_fperr,   0);
-	SETGATE(idt[T_ALIGN],   1, GD_KT, t_align,   0);
+	SETGATE(idt[T_TSS],     0, GD_KT, t_tss,     0);
+	SETGATE(idt[T_SEGNP],   0, GD_KT, t_segnp,   0);
+	SETGATE(idt[T_STACK],   0, GD_KT, t_stack,   0);
+	SETGATE(idt[T_GPFLT],   0, GD_KT, t_gpflt,   0);
+	SETGATE(idt[T_PGFLT],   0, GD_KT, t_pgflt,   0);
+	SETGATE(idt[T_FPERR],   0, GD_KT, t_fperr,   0);
+	SETGATE(idt[T_ALIGN],   0, GD_KT, t_align,   0);
 	SETGATE(idt[T_MCHK],    0, GD_KT, t_mchk,    0);
-	SETGATE(idt[T_SIMDERR], 1, GD_KT, t_simderr, 0);
-	SETGATE(idt[T_SYSCALL], 1, GD_KT, t_syscall, 3);
+	SETGATE(idt[T_SIMDERR], 0, GD_KT, t_simderr, 0);
+	SETGATE(idt[T_SYSCALL], 0, GD_KT, t_syscall, 3);
 
 	for (i=0; i<15; i++){
 		SETGATE(idt[IRQ_OFFSET + i], 0, GD_KT, irq_error, 0);
@@ -132,10 +132,10 @@ trap_init_percpu(void)
 	// when we trap to the kernel.
 	//~ ts.ts_esp0 = KSTACKTOP;
 	//~ ts.ts_ss0 = GD_KD;
-	thiscpu->cpu_ts.ts_esp0 = KSTACKTOP - cpunum() * (KSTACKTOP + KSTKGAP);
+	thiscpu->cpu_ts.ts_esp0 = KSTACKTOP - cpunum() * (KSTKSIZE + KSTKGAP);
 	thiscpu->cpu_ts.ts_ss0 = GD_KD;
 	thiscpu->cpu_ts.ts_iomb = sizeof(struct Taskstate);
-	// Initialize the TSS slot of the gdt.
+	//~ // Initialize the TSS slot of the gdt.
 	gdt[(GD_TSS0 >> 3) + cpunum()] = SEG16(STS_T32A, (uint32_t) (&(thiscpu->cpu_ts)),
 					sizeof(struct Taskstate) - 1, 0);
 	gdt[(GD_TSS0 >> 3) + cpunum()].sd_s = 0;
@@ -264,6 +264,11 @@ trap(struct Trapframe *tf)
 	// Check that interrupts are disabled.  If this assertion
 	// fails, DO NOT be tempted to fix it by inserting a "cli" in
 	// the interrupt path.
+	if ((read_eflags() & FL_IF)) {
+		cprintf("  trap 0x%08x %s\n", tf->tf_trapno, trapname(tf->tf_trapno));
+		print_trapframe(tf);
+		//~ cprintf("");
+	}
 	assert(!(read_eflags() & FL_IF));
 
 	//cprintf("Incoming TRAP frame at %p\n", tf);

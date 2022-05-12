@@ -95,4 +95,3 @@ gdtdesc:
 .globl mpentry_end
 mpentry_end:
 	nop
-

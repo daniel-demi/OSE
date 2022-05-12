@@ -24,21 +24,19 @@ ipc_recv(envid_t *from_env_store, void *pg, int *perm_store)
 {
 	// LAB 4: Your code here.
 	
-	if (!pg) pg = (void*)(UTOP + 1);
+	if (!pg) pg = (void*)(KERNBASE);
 	int res = sys_ipc_recv(pg);
-	if (res<0){
-		if(!from_env_store)
-			*from_env_store = 0;
-		if (!perm_store)
-			*perm_store = 0;
-		return res;
+	envid_t e_store = 0;
+	int p_store = 0;
+	if (res>=0){
+		e_store = thisenv->env_ipc_from;
+		p_store = thisenv->env_ipc_perm;
 	}
-	*from_env_store = thisenv->env_ipc_from;
-	*perm_store = thisenv->env_ipc_perm;
+	if (from_env_store)
+		*from_env_store = e_store;
+	if (perm_store)
+		*perm_store = p_store;
 	return thisenv->env_ipc_value;
-
-	// panic("ipc_recv not implemented");
-	// return 0;
 }
 
 // Send 'val' (and 'pg' with 'perm', if 'pg' is nonnull) to 'toenv'.

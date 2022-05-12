@@ -29,22 +29,22 @@ sched_yield(void)
 	// below to halt the cpu.
 
 	// LAB 4: Your code here.
-	bool check=false;
+	bool check = false;
 		//~ cprintf("dbg: %s:%d\n",__FILE__,__LINE__);
 	int curr_idx, i;
 	if (curenv)
-		curr_idx = ENVX(curenv->env_id);
+		curr_idx = ENVX(curenv->env_id)+1;
 	else
 		curr_idx=0;
 	for(i = 0; i < NENV; i++) {
-		int idx = (curr_idx + i + 1) % NENV;
+		int idx = (curr_idx + i) % NENV;
 		if(envs[idx].env_status == ENV_RUNNABLE) {
 			env_run(&envs[idx]);
 			check = true;
 			break;
 		}
 	}
-	if (curenv->env_status == ENV_RUNNING && !check) {
+	if (curenv && curenv->env_status == ENV_RUNNING && !check) {
 		env_run(curenv);
 		check = true;
 	}

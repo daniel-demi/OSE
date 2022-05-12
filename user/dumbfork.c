@@ -11,10 +11,8 @@ umain(int argc, char **argv)
 {
 	envid_t who;
 	int i;
-cprintf("dbg: %s:%d\n",__FILE__,__LINE__);
 	// fork a child process
 	who = dumbfork();
-cprintf("dbg: %s:%d\n",__FILE__,__LINE__);
 	// print a message and yield to the other a few times
 	for (i = 0; i < (who ? 10 : 20); i++) {
 		cprintf("%d: I am the %s!\n", i, who ? "parent" : "child");

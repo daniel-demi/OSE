@@ -16,10 +16,6 @@
 #include <kern/spinlock.h>
 
 static void boot_aps(void);
-#define KNRM "\x1B[0m"
-	#define KRED "\x1B[31m"
- 	#define KGRN "\x1B[32m"
- 	#define KBLU "\x1B[34m"
 
 
 void
@@ -35,10 +31,9 @@ i386_init(void)
 	// Initialize the console.
 	// Can't call cprintf until after we do this!
 	cons_init();
-	cprintf("normal test here\n");
-	cprintf(KRED "judge " KGRN "me\n");
-	cprintf("free " KNRM "like " KBLU "nobody\n" KNRM);
+
 	cprintf("6828 decimal is %o octal!\n", 6828);
+
 	// Lab 2 memory management initialization functions
 	mem_init();
 
@@ -54,11 +49,10 @@ i386_init(void)
 	pic_init();
 
 	// Acquire the big kernel lock before waking up APs
-	// BSP will get to schedule first environment while
-	// other processors will wait for their turn
-	lock_kernel();
+	// Your code here:
 
 	// Starting non-boot CPUs
+	lock_kernel();
 	boot_aps();
 
 #if defined(TEST)
@@ -66,9 +60,13 @@ i386_init(void)
 	ENV_CREATE(TEST, ENV_TYPE_USER);
 #else
 	// Touch all you want.
-	ENV_CREATE(user_pingpong, ENV_TYPE_USER);
+	//ENV_CREATE(user_faultread, ENV_TYPE_USER);
+	//ENV_CREATE(user_yield, ENV_TYPE_USER);
+	//ENV_CREATE(user_yield, ENV_TYPE_USER);
+	//ENV_CREATE(user_yield, ENV_TYPE_USER);
+	
 #endif // TEST*
-	cprintf("All initializations are done. dispatching...\n");
+
 	// Schedule and run the first user environment!
 	sched_yield();
 }
@@ -125,6 +123,9 @@ mp_main(void)
 	// Your code here:
 	lock_kernel();
 	sched_yield();
+
+	// Remove this after you finish Exercise 4
+	//~ for (;;);
 }
 
 /*
@@ -147,7 +148,7 @@ _panic(const char *file, int line, const char *fmt,...)
 	panicstr = fmt;
 
 	// Be extra sure that the machine is in as reasonable state
-	asm volatile("cli; cld");
+	__asm __volatile("cli; cld");
 
 	va_start(ap, fmt);
 	cprintf("kernel panic on CPU %d at %s:%d: ", cpunum(), file, line);
@@ -173,4 +174,3 @@ _warn(const char *file, int line, const char *fmt,...)
 	cprintf("\n");
 	va_end(ap);
 }
-
