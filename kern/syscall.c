@@ -181,13 +181,25 @@ sys_page_alloc(envid_t envid, void *va, int perm)
 	// LAB 4: Your code here.
 
 	//make sure permissions are legal
-	if (!(perm & PTE_U) || !(PTE_P & perm)) return -E_INVAL;
-	if (perm & ~PTE_SYSCALL) return -E_INVAL;
+	if (!(perm & PTE_U) || !(PTE_P & perm)){
+		cprintf("1\n");
+		 return -E_INVAL;
+	}
+	if (perm & ~PTE_SYSCALL) {
+		cprintf("2\n");
+		return -E_INVAL;
+	}
 	uintptr_t nva = (uintptr_t) va;
 	
 	struct PageInfo* pp = page_alloc(ALLOC_ZERO);
-	if (!pp) return -E_NO_MEM;
-	if(nva >= UTOP || nva%PGSIZE) return -E_INVAL;
+	if (!pp) {
+		cprintf("3\n");
+		return -E_NO_MEM;
+	}
+	if(nva >= UTOP || nva%PGSIZE) {
+		cprintf("4\n");
+		return -E_INVAL;
+	}
 	struct Env* env = NULL;
 	int res = envid2env(envid,&env,1);
 	if (res<0) return res;

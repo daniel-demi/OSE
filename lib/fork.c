@@ -25,10 +25,10 @@ pgfault(struct UTrapframe *utf)
 	//   (see <inc/memlayout.h>).
 
 	// LAB 4: Your code here.
-    pte_t pte = uvpt[(uintptr_t)addr >> PGSHIFT];
-    if(!(err & FEC_WR && (pte & PTE_COW))) {
-        panic("pgfault: faulting access is write or COW page");
-    }
+    // pte_t pte = uvpt[(uintptr_t)addr >> PGSHIFT];
+    // if(!(err & FEC_WR && (pte & PTE_COW))) {
+    //     panic("pgfault: faulting access is write or COW page");
+    // }
 
 	// Allocate a new page, map it at a temporary location (PFTEMP),
 	// copy the data from the old page to the new page, then move the new
@@ -37,32 +37,49 @@ pgfault(struct UTrapframe *utf)
 	//   You should make three system calls.
 
 	// LAB 4: Your code here.
+	/*
     envid_t id = 0;//sys_getenvid();
     
 	int perms = (PGOFF(pte) & ~PTE_COW) | PTE_W;
     cprintf("id:%d   addr:%d   perms:%x\n",id,PFTEMP,perms);
 	r = sys_page_alloc(id, (void *)PFTEMP, perms);
 	
-    if (r < 0) panic("pgfault: couldn't allocate page");
+    if (r < 0) panic("pgfault: couldn't allocate page %e",r);
     void * page_addr = (void *)ROUNDDOWN((uintptr_t)addr,PGSIZE);
     memcpy(PFTEMP, page_addr, PGSIZE);
     r = sys_page_map(id, PFTEMP, id, page_addr, perms);
-    if (r < 0) panic("pgfault; couldn't remap page");
-    // int perm = PTE_P | PTE_U | PTE_W;
-	// if ((r = sys_page_alloc(0, UTEMP, perm)) < 0) {
-	// 	panic("sys_page_alloc: %e", r);
-	// }
-	// memmove(UTEMP, ROUNDDOWN(addr, PGSIZE), PGSIZE);
-	// if ((r = sys_page_map(0,
-	// 		      UTEMP,
-	// 		      0,
-	// 		      ROUNDDOWN(addr, PGSIZE),
-	// 		      perm)) < 0) {
-	// 	panic("sys_page_map %e", r);
-	// }
-	// if ((r = sys_page_unmap(0, UTEMP)) < 0) {
-	// 	panic("unmap %e", r);
-	// }
+	if (r < 0) panic("pgfault; couldn't remap page");
+    */
+	
+	pte_t pte = uvpt[(uintptr_t)addr >> PGSHIFT];
+	
+	if (!(err & 2)) {
+	panic("pgfault was not a write. err: %x", err);
+	} else if (!(pte & PTE_COW)) {
+	panic("pgfault is not copy on write");
+	}
+	
+	// Allocate a new page, map it at a temporary location (PFTEMP),
+	// copy the data from the old page to the new page, then move the new
+	// page to the old page's address.
+	// Hint:
+	// You should make three system calls.
+	// LAB 4: Your code here.
+	int perm = PTE_P | PTE_U | PTE_W;
+	if ((r = sys_page_alloc(0, UTEMP, perm)) < 0) {
+	panic("sys_page_alloc: %e", r);
+	}
+	memmove(UTEMP, ROUNDDOWN(addr, PGSIZE), PGSIZE);
+	if ((r = sys_page_map(0,
+	UTEMP,
+	0,
+	ROUNDDOWN(addr, PGSIZE),
+	perm)) < 0) {
+	panic("sys_page_map %e", r);
+	}
+	if ((r = sys_page_unmap(0, UTEMP)) < 0) {
+	panic("unmap %e", r);
+	}
 }
 
 //
