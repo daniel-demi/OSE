@@ -84,6 +84,7 @@ sys_exofork(void)
 	// from the current environment -- but tweaked so sys_exofork
 	// will appear to return 0.
 
+	// LAB 4: Your code here.
 	//cprintf("dbg: %s:%d\n",__FILE__,__LINE__);
 
 	struct Env* env = NULL;
@@ -100,7 +101,7 @@ sys_exofork(void)
 	//cprintf("envid before return: %d\n", env->env_id);
 	return env->env_id;
 
-	// LAB 4: Your code here.
+	
 	//panic("sys_exofork not implemented");
 }
 
@@ -351,7 +352,36 @@ static int
 sys_ipc_try_send(envid_t envid, uint32_t value, void *srcva, unsigned perm)
 {
 	// LAB 4: Your code here.
-	panic("sys_ipc_try_send not implemented");
+	uintptr_t va = (uintptr_t) srcva;
+	
+	if (va < UTOP){
+		if ((perm & ~PTE_SYSCALL) || va%PGSIZE) return -E_INVAL;
+	}
+
+	struct Env* env = NULL;
+	int res = envid2env(envid, &env, 0);
+	if (res<0) return res;
+	if (env->env_ipc_recving == 0) return -E_IPC_NOT_RECV;
+	
+	if(va < UTOP) {
+		pte_t* pte = NULL;
+		struct PageInfo* pp = page_lookup(curenv->env_pgdir, srcva, &pte);
+		if (!pp) return -E_INVAL;
+		if ((perm & PTE_W) && !(*pte & PTE_W)) return -E_INVAL;
+		res = page_insert(env->env_pgdir,pp,env->env_ipc_dstva,perm);
+		if (res<0) return res;
+	}
+	else 
+		perm = 0;
+	
+	env->env_ipc_from = curenv->env_id;
+	env->env_ipc_value = value;
+	env->env_ipc_perm = perm;
+	env->env_ipc_recving = false;
+	env->env_status = ENV_RUNNABLE;
+
+	return 0;
+	//panic("sys_ipc_try_send not implemented");
 }
 
 // Block until a value is ready.  Record that you want to receive
@@ -369,8 +399,23 @@ static int
 sys_ipc_recv(void *dstva)
 {
 	// LAB 4: Your code here.
-	panic("sys_ipc_recv not implemented");
-	return 0;
+	uintptr_t va = (uintptr_t) dstva;
+
+	if (va < UTOP && va % PGSIZE) return -E_INVAL;
+	
+	curenv->env_ipc_recving = true;
+	//needs to happen eventually, not sure at what point
+	curenv->env_status = ENV_NOT_RUNNABLE;
+
+	//need to sched yield at some point 
+	//after return need to update the dstva and return reg
+	//never returns so yield again
+	if (va < UTOP)
+		curenv->env_ipc_dstva = dstva;
+	curenv->env_tf.tf_regs.reg_eax = 0;
+	sched_yield();
+	//panic("sys_ipc_recv not implemented");
+	// return 0;
 }
 
 // Dispatches to the correct kernel function, passing the arguments.
