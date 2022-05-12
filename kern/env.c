@@ -16,7 +16,6 @@
 #include <kern/spinlock.h>
 
 struct Env *envs = NULL;		// All environments
-//~ struct Env *curenv = NULL;		// The current env
 static struct Env *env_free_list;	// Free environment list
 					// (linked by Env->env_link)
 
@@ -404,6 +403,8 @@ env_create(uint8_t *binary, enum EnvType type)
 		panic("env_create: env_alloc failed\n");
 	}
 	load_icode(newEnv, binary);
+	// If this is the file server (type == ENV_TYPE_FS) give it I/O privileges.
+	// LAB 5: Your code here.
 }
 
 //

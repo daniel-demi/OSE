@@ -233,6 +233,10 @@ trap_dispatch(struct Trapframe *tf)
 		lapic_eoi();
 		sched_yield();
 	}
+	// Unexp
+	// Handle keyboard and serial interrupts.
+	// LAB 5: Your code here.
+
 	// Unexpected trap: The user process or the kernel has a bug.
 	print_trapframe(tf);
 	if (tf->tf_cs == GD_KT)
@@ -243,11 +247,9 @@ trap_dispatch(struct Trapframe *tf)
 	}
 }
 
-
 void
 trap(struct Trapframe *tf)
 {
-	//~ print_trapframe(tf);
 	// The environment may have set DF and some versions
 	// of GCC rely on DF being clear
 	asm volatile("cld" ::: "cc");
@@ -270,8 +272,6 @@ trap(struct Trapframe *tf)
 		//~ cprintf("");
 	}
 	assert(!(read_eflags() & FL_IF));
-
-	//cprintf("Incoming TRAP frame at %p\n", tf);
 
 	if ((tf->tf_cs & 3) == 3) {
 		// Trapped from user mode.
@@ -359,7 +359,6 @@ page_fault_handler(struct Trapframe *tf)
 	//   (the 'tf' variable points at 'curenv->env_tf').
 
 	// LAB 4: Your code here.
-	
 
 	// Destroy the environment that caused the fault.
 	if (!curenv->env_pgfault_upcall){
