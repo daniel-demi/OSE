@@ -92,11 +92,16 @@ trap_init(void)
 	SETGATE(idt[T_MCHK],    0, GD_KT, t_mchk,    0);
 	SETGATE(idt[T_SIMDERR], 0, GD_KT, t_simderr, 0);
 	SETGATE(idt[T_SYSCALL], 0, GD_KT, t_syscall, 3);
+	
 
 	for (i=0; i<15; i++){
 		SETGATE(idt[IRQ_OFFSET + i], 0, GD_KT, irq_error, 0);
 	}
-	SETGATE(idt[IRQ_OFFSET + IRQ_TIMER], 0, GD_KT, irq_timer, 0);
+	SETGATE(idt[IRQ_OFFSET + IRQ_TIMER],  0, GD_KT, irq_timer,  0);
+	
+	SETGATE(idt[IRQ_OFFSET + IRQ_KBD],    0, GD_KT, irq_kbd,    0);
+	SETGATE(idt[IRQ_OFFSET + IRQ_SERIAL], 0, GD_KT, irq_serial, 0);
+	SETGATE(idt[IRQ_OFFSET + IRQ_SPURIOUS], 0, GD_KT, irq_spurious, 0);
 	// Per-CPU setup 
 	trap_init_percpu();
 }
@@ -233,15 +238,26 @@ trap_dispatch(struct Trapframe *tf)
 		lapic_eoi();
 		sched_yield();
 	}
-	// Unexp
+	
 	// Handle keyboard and serial interrupts.
 	// LAB 5: Your code here.
+	if (tf->tf_trapno == IRQ_OFFSET + IRQ_KBD) {
+		cprintf("####################### KBD\n");
+		kbd_intr();
+		return;
+	}
+	if (tf->tf_trapno == IRQ_OFFSET + IRQ_SERIAL) {
+		cprintf("####################### SERIAL\n");
+		serial_intr();
+		return;
+	}
 
 	// Unexpected trap: The user process or the kernel has a bug.
 	print_trapframe(tf);
 	if (tf->tf_cs == GD_KT)
 		panic("unhandled trap in kernel");
 	else {
+		//~ cprintf("unhandled trap in user space");
 		env_destroy(curenv);
 		return;
 	}

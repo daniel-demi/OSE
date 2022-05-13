@@ -43,4 +43,8 @@ void t_syscall();
 void irq_error();
 void irq_timer();
 
+void irq_kbd();
+void irq_serial();
+void irq_spurious();
+
  #endif /* JOS_KERN_TRAP_H */
