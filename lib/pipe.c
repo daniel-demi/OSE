@@ -37,39 +37,22 @@ pipe(int pfd[2])
 	if ((r = fd_alloc(&fd0)) < 0
 	    || (r = sys_page_alloc(0, fd0, PTE_P|PTE_W|PTE_U|PTE_SHARE)) < 0)
 		goto err;
-<<<<<<< HEAD
-	if(debug) cprintf("[%0x8] ====> pipe message 1\n", thisenv->env_id);
 	if ((r = fd_alloc(&fd1)) < 0
 	    || (r = sys_page_alloc(0, fd1, PTE_P|PTE_W|PTE_U|PTE_SHARE)) < 0)
 		goto err1;
-	if(debug) cprintf("[%0x8] ====> pipe message 2\n", thisenv->env_id);
-=======
-
-	if ((r = fd_alloc(&fd1)) < 0
-	    || (r = sys_page_alloc(0, fd1, PTE_P|PTE_W|PTE_U|PTE_SHARE)) < 0)
-		goto err1;
-
->>>>>>> new files
 	// allocate the pipe structure as first data page in both
 	va = fd2data(fd0);
-	if(debug) cprintf("[%0x8] ====> pipe message 3\n", thisenv->env_id);
 	if ((r = sys_page_alloc(0, va, PTE_P|PTE_W|PTE_U|PTE_SHARE)) < 0)
 		goto err2;
-	if(debug) cprintf("[%0x8] ====> pipe message 4\n", thisenv->env_id);
 	if ((r = sys_page_map(0, va, 0, fd2data(fd1), PTE_P|PTE_W|PTE_U|PTE_SHARE)) < 0)
 		goto err3;
-<<<<<<< HEAD
-	if(debug) cprintf("[%0x8] at pipe: didn't go to any err\n", thisenv->env_id);
-=======
 
->>>>>>> new files
 	// set up fd structures
 	fd0->fd_dev_id = devpipe.dev_id;
 	fd0->fd_omode = O_RDONLY;
 
 	fd1->fd_dev_id = devpipe.dev_id;
 	fd1->fd_omode = O_WRONLY;
-
 	if (debug)
 		cprintf("[%08x] pipecreate %08x\n", thisenv->env_id, uvpt[PGNUM(va)]);
 
