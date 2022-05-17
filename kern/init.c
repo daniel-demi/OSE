@@ -54,12 +54,14 @@ i386_init(void)
 	// Starting non-boot CPUs
 	lock_sched();
 	boot_aps();
+	// cprintf("\n\n\n\n 11\n\n\n\n\n\n");
 
 	// Start fs.
 	ENV_CREATE(fs_fs, ENV_TYPE_FS);
 
 #if defined(TEST)
 	// Don't touch -- used by grading script!
+	// cprintf("\n\n\n\n 22\n\n\n\n\n\n");
 	ENV_CREATE(TEST, ENV_TYPE_USER);
 #else
 	// Touch all you want.

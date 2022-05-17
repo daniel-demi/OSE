@@ -48,7 +48,16 @@ bc_pgfault(struct UTrapframe *utf)
 	// the disk.
 	//
 	// LAB 5: you code here:
-
+	//sys_page_alloc(envid_t envid, void *va, int perm)
+	uintptr_t ptr;
+	uint32_t perm;
+	for (ptr = DISKMAP; ptr< DISKMAP +DISKSIZE; ptr += PGSIZE)
+	{
+		//get permissions for ptr and set them in perm
+		if ()
+	}
+	
+	sys_page_alloc(sys_getenvid, ,);
 	// Clear the dirty bit for the disk block page since we just read the
 	// block from disk
 	if ((r = sys_page_map(0, addr, 0, addr, uvpt[PGNUM(addr)] & PTE_SYSCALL)) < 0)
