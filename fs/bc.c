@@ -48,16 +48,13 @@ bc_pgfault(struct UTrapframe *utf)
 	// the disk.
 	//
 	// LAB 5: you code here:
-	//sys_page_alloc(envid_t envid, void *va, int perm)
-	uintptr_t ptr;
-	uint32_t perm;
-	for (ptr = DISKMAP; ptr< DISKMAP +DISKSIZE; ptr += PGSIZE)
-	{
-		//get permissions for ptr and set them in perm
-		if ()
-	}
 	
-	sys_page_alloc(sys_getenvid, ,);
+	int res = sys_page_alloc(sys_getenvid(), ROUNDDOWN(addr, PGSIZE), PTE_U|PTE_W);
+	if (res<0) panic("bc_pgfault1: %e", res);
+	res = ide_read(BLKSECTS*blockno,ROUNDDOWN(addr, PGSIZE),BLKSECTS);
+	if (res<0) panic("bc_pgfault2: %e",res);
+	
+
 	// Clear the dirty bit for the disk block page since we just read the
 	// block from disk
 	if ((r = sys_page_map(0, addr, 0, addr, uvpt[PGNUM(addr)] & PTE_SYSCALL)) < 0)
@@ -86,7 +83,18 @@ flush_block(void *addr)
 		panic("flush_block of bad va %08x", addr);
 
 	// LAB 5: Your code here.
-	panic("flush_block not implemented");
+	if (!va_is_mapped(addr)){
+		return;
+	}
+	if (!va_is_dirty(addr)){
+		return;
+	}
+	addr = ROUNDDOWN(addr,BLKSIZE);
+	int res = ide_write(blockno*BLKSECTS,addr,BLKSECTS);
+	if (res<0) panic("flush_block->ide_write failed: %e", res);
+	envid_t id = sys_getenvid();
+	res = sys_page_map(id, addr,id,addr,PTE_SYSCALL);
+	if(res<0) panic("flush_block->sys_page_map failed: %e", res);
 }
 
 // Test that the block cache works, by smashing the superblock and
