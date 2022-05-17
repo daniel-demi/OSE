@@ -4,7 +4,7 @@
 #include <inc/error.h>
 #include <inc/string.h>
 #include <inc/assert.h>
-
+#include <kern/spinlock.h>
 #include <kern/env.h>
 #include <kern/pmap.h>
 #include <kern/trap.h>
@@ -56,10 +56,6 @@ sys_env_destroy(envid_t envid)
 
 	if ((r = envid2env(envid, &e, 1)) < 0)
 		return r;
-	if (e == curenv)
-		cprintf("[%08x] exiting gracefully\n", curenv->env_id);
-	else
-		cprintf("[%08x] destroying %08x\n", curenv->env_id, e->env_id);
 	env_destroy(e);
 	return 0;
 }
@@ -137,6 +133,22 @@ sys_env_set_status(envid_t envid, int status)
 //~ //	panic("sys_env_set_status not implemented");
 }
 
+// Set envid's trap frame to 'tf'.
+// tf is modified to make sure that user environments always run at code
+// protection level 3 (CPL 3) with interrupts enabled.
+//
+// Returns 0 on success, < 0 on error.  Errors are:
+//	-E_BAD_ENV if environment envid doesn't currently exist,
+//		or the caller doesn't have permission to change envid.
+static int
+sys_env_set_trapframe(envid_t envid, struct Trapframe *tf)
+{
+	// LAB 5: Your code here.
+	// Remember to check whether the user has supplied us with a good
+	// address!
+	panic("sys_env_set_trapframe not implemented");
+}
+
 // Set the page fault upcall for 'envid' by modifying the corresponding struct
 // Env's 'env_pgfault_upcall' field.  When 'envid' causes a page fault, the
 // kernel will push a fault record onto the exception stack, then branch to
@@ -191,14 +203,20 @@ sys_page_alloc(envid_t envid, void *va, int perm)
 	if (perm & ~PTE_SYSCALL) return -E_INVAL;
 	uintptr_t new_va = (uintptr_t) va;
 	if (new_va>= UTOP || new_va % PGSIZE) return -E_INVAL;
+	lock_page();
 	struct PageInfo* pp = page_alloc(ALLOC_ZERO);
+	unlock_page();
 	if (!pp) return -E_NO_MEM;
 	struct Env* env = NULL;
 	int res = envid2env(envid,&env,1);
 	if (res<0) return res;
+	lock_page();
 	res = page_insert(env->env_pgdir, pp, va, perm);
+	unlock_page();
 	if (res<0) {
+		lock_page();
 		page_free(pp);
+		unlock_page();
 		return res;
 	}
 	return 0;
@@ -352,12 +370,13 @@ sys_ipc_try_send(envid_t envid, uint32_t value, void *srcva, unsigned perm)
 	}
 	else 
 		perm = 0;
-	
+	lock_ipc();
 	env->env_ipc_from = curenv->env_id;
 	env->env_ipc_value = value;
 	env->env_ipc_perm = perm;
 	env->env_ipc_recving = false;
 	env->env_status = ENV_RUNNABLE;
+	unlock_ipc();
 
 	return 0;
 }
@@ -376,11 +395,12 @@ sys_ipc_try_send(envid_t envid, uint32_t value, void *srcva, unsigned perm)
 static int
 sys_ipc_recv(void *dstva)
 {
+	
 	// LAB 4: Your code here.
 	uintptr_t va = (uintptr_t) dstva;
 
 	if (va < UTOP && va % PGSIZE) return -E_INVAL;
-	
+	lock_ipc();
 	curenv->env_ipc_recving = true;
 	//needs to happen eventually, not sure at what point
 	curenv->env_status = ENV_NOT_RUNNABLE;
@@ -391,6 +411,7 @@ sys_ipc_recv(void *dstva)
 	if (va < UTOP)
 		curenv->env_ipc_dstva = dstva;
 	curenv->env_tf.tf_regs.reg_eax = 0;
+	unlock_ipc();
 	sched_yield();
 }
 

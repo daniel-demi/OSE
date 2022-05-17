@@ -5,7 +5,7 @@
 #include <inc/kbdreg.h>
 #include <inc/string.h>
 #include <inc/assert.h>
-
+#include <kern/spinlock.h>
 #include <kern/console.h>
 #include <kern/picirq.h>
 
@@ -101,6 +101,9 @@ serial_init(void)
 	(void) inb(COM1+COM_IIR);
 	(void) inb(COM1+COM_RX);
 
+	// Enable serial interrupts
+	if (serial_exists)
+		irq_setmask_8259A(irq_mask_8259A & ~(1<<4));
 }
 
 
@@ -414,6 +417,7 @@ cons_intr(int (*proc)(void))
 int
 cons_getc(void)
 {
+	lock_console();
 	int c;
 
 	// poll for any pending input characters,
@@ -429,6 +433,7 @@ cons_getc(void)
 			cons.rpos = 0;
 		return c;
 	}
+	unlock_console();
 	return 0;
 }
 
@@ -436,9 +441,11 @@ cons_getc(void)
 static void
 cons_putc(int c)
 {
+	lock_console();
 	serial_putc(c);
 	lpt_putc(c);
 	cga_putc(c);
+	unlock_console();
 }
 
 // initialize the console devices

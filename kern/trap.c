@@ -233,6 +233,10 @@ trap_dispatch(struct Trapframe *tf)
 		lapic_eoi();
 		sched_yield();
 	}
+	// Unexp
+	// Handle keyboard and serial interrupts.
+	// LAB 5: Your code here.
+
 	// Unexpected trap: The user process or the kernel has a bug.
 	print_trapframe(tf);
 	if (tf->tf_cs == GD_KT)
@@ -243,11 +247,9 @@ trap_dispatch(struct Trapframe *tf)
 	}
 }
 
-
 void
 trap(struct Trapframe *tf)
 {
-	//~ print_trapframe(tf);
 	// The environment may have set DF and some versions
 	// of GCC rely on DF being clear
 	asm volatile("cld" ::: "cc");
@@ -260,7 +262,7 @@ trap(struct Trapframe *tf)
 	// Re-acqurie the big kernel lock if we were halted in
 	// sched_yield()
 	if (xchg(&thiscpu->cpu_status, CPU_STARTED) == CPU_HALTED)
-		lock_kernel();
+		lock_sched();
 	// Check that interrupts are disabled.  If this assertion
 	// fails, DO NOT be tempted to fix it by inserting a "cli" in
 	// the interrupt path.
@@ -271,14 +273,12 @@ trap(struct Trapframe *tf)
 	}
 	assert(!(read_eflags() & FL_IF));
 
-	//cprintf("Incoming TRAP frame at %p\n", tf);
-
 	if ((tf->tf_cs & 3) == 3) {
 		// Trapped from user mode.
 		// Acquire the big kernel lock before doing any
 		// serious kernel work.
 		// LAB 4: Your code here.
-		lock_kernel();
+		lock_sched();
 		assert(curenv);
 
 		// Garbage collect if current enviroment is a zombie
@@ -359,7 +359,6 @@ page_fault_handler(struct Trapframe *tf)
 	//   (the 'tf' variable points at 'curenv->env_tf').
 
 	// LAB 4: Your code here.
-	
 
 	// Destroy the environment that caused the fault.
 	if (!curenv->env_pgfault_upcall){

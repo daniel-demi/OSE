@@ -92,7 +92,8 @@ sched_halt(void)
 	//~ cprintf("%s:%d\n",__FILE__,__LINE__);
 
 	// Release the big kernel lock as if we were "leaving" the kernel
-	unlock_kernel();
+	unlock_sched();
+	//~ unlock_console();
 	//~ cprintf("%s:%d\n",__FILE__,__LINE__);
 
 	// Reset stack pointer, enable interrupts and then halt.
