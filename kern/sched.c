@@ -30,7 +30,7 @@ sched_yield(void)
 
 	// LAB 4: Your code here.
 	bool check = false;
-		//~ cprintf("dbg: %s:%d\n",__FILE__,__LINE__);
+		
 	int curr_idx, i;
 	if (curenv)
 		curr_idx = ENVX(curenv->env_id)+1;
@@ -61,7 +61,7 @@ sched_yield(void)
 void
 sched_halt(void)
 {
-	//~ cprintf("dbg: sched_halt start\n");
+	
 	int i;
 
 	// For debugging and testing purposes, if there are no runnable
@@ -72,29 +72,29 @@ sched_halt(void)
 		     envs[i].env_status == ENV_DYING))
 			break;
 	}
-	//~ cprintf("%s:%d\n",__FILE__,__LINE__);
+	
 	if (i == NENV) {
 		cprintf("No runnable environments in the system!\n");
 		while (1)
 			monitor(NULL);
 	}
-	//~ cprintf("%s:%d\n",__FILE__,__LINE__);
+	
 
 	// Mark that no environment is running on this CPU
 	curenv = NULL;
 	lcr3(PADDR(kern_pgdir));
-	//~ cprintf("%s:/%d\n",__FILE__,__LINE__);
+	
 
 	// Mark that this CPU is in the HALT state, so that when
 	// timer interupts come in, we know we should re-acquire the
 	// big kernel lock
 	xchg(&thiscpu->cpu_status, CPU_HALTED);
-	//~ cprintf("%s:%d\n",__FILE__,__LINE__);
+	
 
 	// Release the big kernel lock as if we were "leaving" the kernel
 	unlock_sched();
-	//~ unlock_console();
-	//~ cprintf("%s:%d\n",__FILE__,__LINE__);
+	
+	
 
 	// Reset stack pointer, enable interrupts and then halt.
 	asm volatile (
@@ -107,6 +107,6 @@ sched_halt(void)
 		"hlt\n"
 		"jmp 1b\n"
 	: : "a" (thiscpu->cpu_ts.ts_esp0));
-	//~ cprintf("dbg: sched_halt end\n");
+	
 }
 

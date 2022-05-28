@@ -130,12 +130,12 @@ trap_init_percpu(void)
 
 	// Setup a TSS so that we get the right stack
 	// when we trap to the kernel.
-	//~ ts.ts_esp0 = KSTACKTOP;
-	//~ ts.ts_ss0 = GD_KD;
+	
+	
 	thiscpu->cpu_ts.ts_esp0 = KSTACKTOP - cpunum() * (KSTKSIZE + KSTKGAP);
 	thiscpu->cpu_ts.ts_ss0 = GD_KD;
 	thiscpu->cpu_ts.ts_iomb = sizeof(struct Taskstate);
-	//~ // Initialize the TSS slot of the gdt.
+	
 	gdt[(GD_TSS0 >> 3) + cpunum()] = SEG16(STS_T32A, (uint32_t) (&(thiscpu->cpu_ts)),
 					sizeof(struct Taskstate) - 1, 0);
 	gdt[(GD_TSS0 >> 3) + cpunum()].sd_s = 0;
@@ -269,7 +269,7 @@ trap(struct Trapframe *tf)
 	if ((read_eflags() & FL_IF)) {
 		cprintf("  trap 0x%08x %s\n", tf->tf_trapno, trapname(tf->tf_trapno));
 		print_trapframe(tf);
-		//~ cprintf("");
+		
 	}
 	assert(!(read_eflags() & FL_IF));
 

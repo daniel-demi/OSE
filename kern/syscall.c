@@ -74,14 +74,14 @@ sys_yield(void)
 static envid_t
 sys_exofork(void)
 {
-	//~ // Create the new environment with env_alloc(), from kern/env.c.
-	//~ // It should be left as env_alloc created it, except that
-	//~ // status is set to ENV_NOT_RUNNABLE, and the register set is copied
-	//~ // from the current environment -- but tweaked so sys_exofork
-	//~ // will appear to return 0.
-//~ 
-	//~ // LAB 4: Your code here.
-	//~ //cprintf("dbg: %s:%d\n",__FILE__,__LINE__);
+	
+	
+	
+	
+	
+
+	
+	
 
 	struct Env* env = NULL;
 	envid_t id = curenv->env_id;
@@ -130,7 +130,7 @@ sys_env_set_status(envid_t envid, int status)
 	if (res<0) return res;
 	env->env_status = status;
 	return 0;
-//~ //	panic("sys_env_set_status not implemented");
+
 }
 
 // Set envid's trap frame to 'tf'.
@@ -146,7 +146,11 @@ sys_env_set_trapframe(envid_t envid, struct Trapframe *tf)
 	// LAB 5: Your code here.
 	// Remember to check whether the user has supplied us with a good
 	// address!
-	panic("sys_env_set_trapframe not implemented");
+	struct Env* env = NULL;
+	int res = envid2env(envid, &env,1);
+	if (res<0) return res;
+	env->env_tf = *tf;
+	return 0;
 }
 
 // Set the page fault upcall for 'envid' by modifying the corresponding struct
@@ -166,7 +170,7 @@ sys_env_set_pgfault_upcall(envid_t envid, void *func)
 	if (res<0) return res;
 	env->env_pgfault_upcall = func;
 	return 0;
-	//~ 
+	
 	//panic("sys_env_set_pgfault_upcall not implemented");
 }
 
@@ -452,6 +456,8 @@ syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, 
 		return sys_ipc_recv((void*)a1);
 	case SYS_ipc_try_send:
 		return sys_ipc_try_send((envid_t)a1,(uint32_t)a2,(void*)a3,(unsigned)a4);
+	case SYS_env_set_trapframe:
+		return sys_env_set_trapframe((envid_t)a1, (struct Trapframe *)a2);
 	default:
 		return -E_INVAL;
 	}

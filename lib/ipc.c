@@ -25,9 +25,9 @@ ipc_recv(envid_t *from_env_store, void *pg, int *perm_store)
 	// LAB 4: Your code here.
 	
 	if (!pg) pg = (void*)(KERNBASE);
-	//~ lock_ipc();
+	
 	int res = sys_ipc_recv(pg);
-	//~ unlock_ipc();
+	
 	envid_t e_store = 0;
 	int p_store = 0;
 	if (res>=0){
@@ -56,9 +56,9 @@ ipc_send(envid_t to_env, uint32_t val, void *pg, int perm)
 	if (!pg) pg= (void*)(UTOP+1);
 	int res;
 	while(1){
-		//~ lock_ipc();
+		
 		res = sys_ipc_try_send(to_env, val, pg, perm);
-		//~ unlock_ipc();
+		
 		if (!res) break;
 		if (res == -E_IPC_NOT_RECV) 
 			sys_yield();

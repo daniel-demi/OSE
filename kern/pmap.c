@@ -349,17 +349,6 @@ page_init(void)
 		pages[i].pp_link = page_free_list;
 		page_free_list = &pages[i];
 	}
-	
-	//LAB 4 - MMIO
-	//~ int idx = MPENTRY_PADDR / PGSIZE;
-	//~ for(i=0; i < idx; i++) {
-		//~ if(pages[i].pp_link == &pages[idx]) {
-			//~ pages[i].pp_link = pages[idx].pp_link;
-		//~ }
-	//~ }
-	//~ pages[idx].pp_link = NULL;
-	//~ pages[idx].pp_ref = 1; 
-	
 }
 
 //

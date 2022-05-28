@@ -93,7 +93,7 @@ flush_block(void *addr)
 	int res = ide_write(blockno*BLKSECTS,addr,BLKSECTS);
 	if (res<0) panic("flush_block->ide_write failed: %e", res);
 	envid_t id = sys_getenvid();
-	res = sys_page_map(id, addr,id,addr,PTE_SYSCALL);
+	res = sys_page_map(id, addr,id,addr,uvpt[PGNUM(addr)] & PTE_SYSCALL);
 	if(res<0) panic("flush_block->sys_page_map failed: %e", res);
 }
 
