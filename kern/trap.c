@@ -242,12 +242,12 @@ trap_dispatch(struct Trapframe *tf)
 	// Handle keyboard and serial interrupts.
 	// LAB 5: Your code here.
 	if (tf->tf_trapno == IRQ_OFFSET + IRQ_KBD) {
-		cprintf("####################### KBD\n");
+		//~ cprintf("####################### KBD\n");
 		kbd_intr();
 		return;
 	}
 	if (tf->tf_trapno == IRQ_OFFSET + IRQ_SERIAL) {
-		cprintf("####################### SERIAL\n");
+		//~ cprintf("####################### SERIAL\n");
 		serial_intr();
 		return;
 	}
@@ -257,7 +257,6 @@ trap_dispatch(struct Trapframe *tf)
 	if (tf->tf_cs == GD_KT)
 		panic("unhandled trap in kernel");
 	else {
-		//~ cprintf("unhandled trap in user space");
 		env_destroy(curenv);
 		return;
 	}
@@ -404,4 +403,3 @@ page_fault_handler(struct Trapframe *tf)
 	env_run(curenv);
 
 }
-

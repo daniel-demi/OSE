@@ -31,37 +31,30 @@ pipe(int pfd[2])
 	int r;
 	struct Fd *fd0, *fd1;
 	void *va;
-
 	// allocate the file descriptor table entries
 	if ((r = fd_alloc(&fd0)) < 0
 	    || (r = sys_page_alloc(0, fd0, PTE_P|PTE_W|PTE_U|PTE_SHARE)) < 0)
 		goto err;
-
 	if ((r = fd_alloc(&fd1)) < 0
 	    || (r = sys_page_alloc(0, fd1, PTE_P|PTE_W|PTE_U|PTE_SHARE)) < 0)
 		goto err1;
-
 	// allocate the pipe structure as first data page in both
 	va = fd2data(fd0);
 	if ((r = sys_page_alloc(0, va, PTE_P|PTE_W|PTE_U|PTE_SHARE)) < 0)
 		goto err2;
 	if ((r = sys_page_map(0, va, 0, fd2data(fd1), PTE_P|PTE_W|PTE_U|PTE_SHARE)) < 0)
 		goto err3;
-
 	// set up fd structures
 	fd0->fd_dev_id = devpipe.dev_id;
 	fd0->fd_omode = O_RDONLY;
 
 	fd1->fd_dev_id = devpipe.dev_id;
 	fd1->fd_omode = O_WRONLY;
-
 	if (debug)
 		cprintf("[%08x] pipecreate %08x\n", thisenv->env_id, uvpt[PGNUM(va)]);
-
 	pfd[0] = fd2num(fd0);
 	pfd[1] = fd2num(fd1);
 	return 0;
-
     err3:
 	sys_page_unmap(0, va);
     err2:
