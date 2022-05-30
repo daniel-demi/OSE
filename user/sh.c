@@ -12,6 +12,8 @@ int debug = 0;
 // tokens from the string.
 int gettoken(char *s, char **token);
 
+bool parse (char* buf, char** next);
+
 
 // Parse a shell command from string 's' and execute it.
 // Do not return until the shell command is finished.
@@ -271,7 +273,7 @@ usage(void)
 void
 umain(int argc, char **argv)
 {
-	int r, interactive, echocmds;
+	int r, interactive, echocmds, f;
 	struct Argstate args;
 
 	interactive = '?';
@@ -320,15 +322,37 @@ umain(int argc, char **argv)
 			printf("# %s\n", buf);
 		if (debug)
 			cprintf("BEFORE FORK\n");
-		if ((r = fork()) < 0)
-			panic("fork: %e", r);
-		if (debug)
-			cprintf("FORK: %d\n", r);
-		if (r == 0) {
-			runcmd(buf);
-			exit();
-		} else
-			wait(r);
+		
+		// if (debug)
+		// 	cprintf("FORK: %d\n", r);
+		bool flag = true;
+		while (buf && flag){
+			char* next;
+			flag = parse(buf, &next);
+			if ((f = fork()) < 0) panic ("fork: %e", f);
+			if (f == 0){
+				runcmd(buf);
+				exit();
+			}
+			else {
+				wait(f);
+				buf = next;
+			}
+		}
+			
+		
 	}
+}
+
+bool parse (char* buf, char** next){
+	int i;
+	for (i=0; i < strlen(buf); i++){
+		if (buf[i] == ';'){
+			buf[i] = 0;
+			*next = buf + i + 1;
+			return true;
+		}
+	}
+	return false;
 }
 
