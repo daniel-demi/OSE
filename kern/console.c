@@ -417,7 +417,7 @@ cons_intr(int (*proc)(void))
 int
 cons_getc(void)
 {
-	//~ lock_console();
+	
 	int c;
 
 	// poll for any pending input characters,
@@ -433,7 +433,7 @@ cons_getc(void)
 			cons.rpos = 0;
 		return c;
 	}
-	//~ unlock_console();
+	
 	return 0;
 }
 
@@ -441,11 +441,11 @@ cons_getc(void)
 static void
 cons_putc(int c)
 {
-	//~ lock_console();
+	
 	serial_putc(c);
 	lpt_putc(c);
 	cga_putc(c);
-	//~ unlock_console();
+	
 }
 
 // initialize the console devices

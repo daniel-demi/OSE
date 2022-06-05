@@ -20,8 +20,8 @@ top:
 	if ((r = readn(fd, &p, 4)) != 4)
 		panic("primeproc could not read initial prime: %d, %e", r, r >= 0 ? 0 : r);
 
-	cprintf("<%08x> %d\n", sys_getenvid(), p);
-	cprintf("<%08x> ===> message\n", sys_getenvid());
+	cprintf("%d\n", p);
+
 	// fork a right neighbor to continue the chain
 	if ((i=pipe(pfd)) < 0)
 		panic("pipe: %e", i);

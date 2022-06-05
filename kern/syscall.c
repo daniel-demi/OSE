@@ -12,7 +12,7 @@
 #include <kern/console.h>
 #include <kern/sched.h>
 
-#define debug 1
+#define debug 0
 
 // Print a string to the system console.
 // The string is exactly 'len' characters long.
@@ -211,22 +211,16 @@ sys_page_alloc(envid_t envid, void *va, int perm)
 	if (perm & ~PTE_SYSCALL) return -E_INVAL;
 	uintptr_t new_va = (uintptr_t) va;
 	if (new_va>= UTOP || new_va % PGSIZE) return -E_INVAL;
-	//~ lock_page();
 	struct PageInfo* pp = page_alloc(ALLOC_ZERO);
-	//~ unlock_page();
 	if (!pp) return -E_NO_MEM;
 	struct Env* env = NULL;
 	int res = envid2env(envid,&env,1);
 	if (res<0) {
 	return res;
 }
-	//~ lock_page();
 	res = page_insert(env->env_pgdir, pp, va, perm);
-	//~ unlock_page();
 	if (res<0) {
-		//~ lock_page();
 		page_free(pp);
-		//~ unlock_page();
 		return res;
 	}
 	if (debug) cprintf("[%08x] sys_page_alloc succeeded\n", curenv->env_id);
@@ -381,13 +375,11 @@ sys_ipc_try_send(envid_t envid, uint32_t value, void *srcva, unsigned perm)
 	}
 	else 
 		perm = 0;
-	//~ lock_ipc();
 	env->env_ipc_from = curenv->env_id;
 	env->env_ipc_value = value;
 	env->env_ipc_perm = perm;
 	env->env_ipc_recving = false;
 	env->env_status = ENV_RUNNABLE;
-	//~ unlock_ipc();
 
 	return 0;
 }
@@ -411,7 +403,6 @@ sys_ipc_recv(void *dstva)
 	uintptr_t va = (uintptr_t) dstva;
 
 	if (va < UTOP && va % PGSIZE) return -E_INVAL;
-	//~ lock_ipc();
 	curenv->env_ipc_recving = true;
 	//needs to happen eventually, not sure at what point
 	curenv->env_status = ENV_NOT_RUNNABLE;
@@ -422,7 +413,6 @@ sys_ipc_recv(void *dstva)
 	if (va < UTOP)
 		curenv->env_ipc_dstva = dstva;
 	curenv->env_tf.tf_regs.reg_eax = 0;
-	//~ unlock_ipc();
 	sched_yield();
 }
 
