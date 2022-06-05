@@ -55,6 +55,7 @@ sched_yield(void)
 	panic("shced_yield: returned");
 }
 
+
 // Halt this CPU when there is nothing to do. Wait until the
 // timer interrupt wakes it up. This function never returns.
 //
@@ -92,7 +93,7 @@ sched_halt(void)
 	
 
 	// Release the big kernel lock as if we were "leaving" the kernel
-	unlock_sched();
+	unlock_kernel();
 	
 	
 

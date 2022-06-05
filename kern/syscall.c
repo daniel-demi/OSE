@@ -12,6 +12,8 @@
 #include <kern/console.h>
 #include <kern/sched.h>
 
+#define debug 1
+
 // Print a string to the system console.
 // The string is exactly 'len' characters long.
 // Destroys the environment on memory errors.
@@ -193,6 +195,8 @@ sys_env_set_pgfault_upcall(envid_t envid, void *func)
 static int
 sys_page_alloc(envid_t envid, void *va, int perm)
 {
+	if (debug) cprintf("[%08x] attempting sys_page_alloc\n", curenv->env_id);
+	
 	// Hint: This function is a wrapper around page_alloc() and
 	//   page_insert() from kern/pmap.c.
 	//   Most of the new code you write should be to check the
@@ -225,6 +229,7 @@ sys_page_alloc(envid_t envid, void *va, int perm)
 		//~ unlock_page();
 		return res;
 	}
+	if (debug) cprintf("[%08x] sys_page_alloc succeeded\n", curenv->env_id);
 	return 0;
 //	panic("sys_page_alloc not implemented");
 }

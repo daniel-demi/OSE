@@ -52,7 +52,7 @@ i386_init(void)
 	// Your code here:
 
 	// Starting non-boot CPUs
-	lock_sched();
+	lock_kernel();
 	boot_aps();
 	// cprintf("\n\n\n\n 11\n\n\n\n\n\n");
 
@@ -125,7 +125,7 @@ mp_main(void)
 	// only one CPU can enter the scheduler at a time!
 	//
 	// Your code here:
-	lock_sched();
+	lock_kernel();
 	sched_yield();
 }
 

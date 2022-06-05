@@ -1,6 +1,6 @@
 #include <inc/lib.h>
 
-#define debug		0
+#define debug		1
 
 // Maximum number of file descriptors a program may hold open concurrently
 #define MAXFD		32
@@ -50,6 +50,7 @@ fd2data(struct Fd *fd)
 int
 fd_alloc(struct Fd **fd_store)
 {
+	if (debug) cprintf("[%08x] attempting fd_alloc\n", thisenv->env_id);
 	int i;
 	struct Fd *fd;
 
@@ -57,6 +58,7 @@ fd_alloc(struct Fd **fd_store)
 		fd = INDEX2FD(i);
 		if ((uvpd[PDX(fd)] & PTE_P) == 0 || (uvpt[PGNUM(fd)] & PTE_P) == 0) {
 			*fd_store = fd;
+			if (debug) cprintf("[%08x] fd_alloc suscceeded\n", thisenv->env_id);
 			return 0;
 		}
 	}
@@ -200,6 +202,8 @@ err:
 	return r;
 }
 
+// Prforms read once
+// Once the buffer is empty or read-pos==write-pos returns the number of bytes read
 ssize_t
 read(int fdnum, void *buf, size_t n)
 {
@@ -219,18 +223,29 @@ read(int fdnum, void *buf, size_t n)
 	return (*dev->dev_read)(fd, buf, n);
 }
 
+// Performs read until there's nothing more to read
 ssize_t
 readn(int fdnum, void *buf, size_t n)
 {
+	if (debug) cprintf("[%08x] attempting readn\n", thisenv->env_id);
+	
 	int m, tot;
 
 	for (tot = 0; tot < n; tot += m) {
 		m = read(fdnum, (char*)buf + tot, n - tot);
+		if (debug) cprintf("[%08x] read finished\n", thisenv->env_id);
 		if (m < 0)
+		{
+			if (debug) cprintf("[%08x] received error %e\n", thisenv->env_id, m);
 			return m;
+		}
 		if (m == 0)
+		{
+			if (debug) cprintf("[%08x] no more bytes to read\n", thisenv->env_id);
 			break;
+		}
 	}
+	if (debug) cprintf("[%08x] read %d bytes\n", thisenv->env_id, tot);
 	return tot;
 }
 
