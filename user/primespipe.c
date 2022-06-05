@@ -33,6 +33,7 @@ top:
 		fd = pfd[0];
 		goto top;
 	}
+
 	close(pfd[0]);
 	wfd = pfd[1];
 
@@ -50,6 +51,7 @@ void
 umain(int argc, char **argv)
 {
 	int i, id, p[2], r;
+
 	binaryname = "primespipe";
 
 	if ((i=pipe(p)) < 0)
