@@ -91,6 +91,10 @@ envid2env(envid_t envid, struct Env **env_store, bool checkperm)
 	e = &envs[ENVX(envid)];
 	if (e->env_status == ENV_FREE || e->env_id != envid) {
 		*env_store = 0;
+		if (e->env_status == ENV_FREE)
+		cprintf("########################### %d\n", e->env_type);
+		else 
+		cprintf("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ %d\n", e->env_type);
 		return -E_BAD_ENV;
 	}
 
