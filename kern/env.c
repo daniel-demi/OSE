@@ -91,6 +91,10 @@ envid2env(envid_t envid, struct Env **env_store, bool checkperm)
 	e = &envs[ENVX(envid)];
 	if (e->env_status == ENV_FREE || e->env_id != envid) {
 		*env_store = 0;
+		if (e->env_status == ENV_FREE)
+		cprintf("########################### %d\n", e->env_type);
+		else 
+		cprintf("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ %d\n", e->env_type);
 		return -E_BAD_ENV;
 	}
 
@@ -408,6 +412,8 @@ env_create(uint8_t *binary, enum EnvType type)
 	// LAB 5: Your code here.
 	if (type == ENV_TYPE_FS)
 		newEnv->env_tf.tf_eflags |= FL_IOPL_3;
+		
+	cprintf("[%08x] Environment created. Type %d\n", newEnv->env_id, type);
 }
 
 //

@@ -25,14 +25,13 @@ struct pci_driver {
 // pci_attach_class matches the class and subclass of a PCI device
 struct pci_driver pci_attach_class[] = {
 	{ PCI_CLASS_BRIDGE, PCI_SUBCLASS_BRIDGE_PCI, &pci_bridge_attach },
-	{ PCI_CLASS_NETWORK, PCI_SUBCLASS_NETWORK_ETHERNET,  &attach_e1000},
 	{ 0, 0, 0 },
 };
 
 // pci_attach_vendor matches the vendor ID and device ID of a PCI device. key1
 // and key2 should be the vendor ID and device ID respectively
 struct pci_driver pci_attach_vendor[] = {
-	{ 0x8086, 0x100E, &attach_e1000},
+	{ 0x8086, 0x100E, attach_e1000},
 	{ 0, 0, 0 },
 };
 
@@ -76,6 +75,9 @@ pci_attach_match(uint32_t key1, uint32_t key2,
 	for (i = 0; list[i].attachfn; i++) {
 		if (list[i].key1 == key1 && list[i].key2 == key2) {
 			int r = list[i].attachfn(pcif);
+			cprintf("pci_attach_match: attaching "
+					"%x.%x (%p): %d\n",
+					key1, key2, list[i].attachfn, r);
 			if (r > 0)
 				return r;
 			if (r < 0)
