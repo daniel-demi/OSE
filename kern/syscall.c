@@ -78,15 +78,6 @@ sys_yield(void)
 static envid_t
 sys_exofork(void)
 {
-	
-	
-	
-	
-	
-
-	
-	
-
 	struct Env* env = NULL;
 	envid_t id = curenv->env_id;
 	int res = env_alloc(&env, id);

@@ -29,7 +29,7 @@ int attach_e1000(struct pci_func *pcif) {
 	tx_queue_desc = page2kva(tx_queue_page);
 	int i;
 	for (i = 0; i < 64; i++) {
-		tx_queue_desc[i].addr = (uint64_t)PADDR(&tx_buff_queue[i][0]);
+		tx_queue_desc[i].buffer_addr = (uint64_t)PADDR(&tx_buff_queue[i][0]);
 		tx_queue_desc[i].cmd = (1 <<3) | (1<<0);
 		tx_queue_desc[i].status |= E1000_TXD_STAT_DD;
 	}
@@ -37,10 +37,6 @@ int attach_e1000(struct pci_func *pcif) {
 	BAR0_AT(E1000_TDH) = 0;
 	BAR0_AT(E1000_TCTL) |= E1000_TCTL_EN | E1000_TCTL_PSP | (E1000_TCTL_COLD & (0x40 << 12));
 	BAR0_AT(E1000_TIPG) = 10;
-	//~ 
-	
-	
-	
 	
 	return 0;
 }
@@ -52,8 +48,8 @@ int transmit(char *buff, int size) {
 	}
 	memcpy(tx_buff_queue[tail], buff, size);
 	tx_queue_desc[tail].status &= ~E1000_TXD_STAT_DD;
-	BAR0_AT(E1000_TDT) = tail + 1 % NDESC;
 	tx_queue_desc[tail].length = size;
+	BAR0_AT(E1000_TDT) = (tail + 1) % NDESC;
 	return 0;
 }
 	

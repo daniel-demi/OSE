@@ -422,6 +422,7 @@ env_create(uint8_t *binary, enum EnvType type)
 void
 env_free(struct Env *e)
 {
+	cprintf("Freeing env %08x\n", e->env_id);
 	pte_t *pt;
 	uint32_t pdeno, pteno;
 	physaddr_t pa;
@@ -467,6 +468,7 @@ env_free(struct Env *e)
 	e->env_status = ENV_FREE;
 	e->env_link = env_free_list;
 	env_free_list = e;
+
 }
 
 //
@@ -543,7 +545,6 @@ env_run(struct Env *e)
 	//	e->env_tf to sensible values.
 
 	// LAB 3: Your code here.
-
 	if (curenv && curenv->env_status == ENV_RUNNING) {
 		curenv->env_status = ENV_RUNNABLE;
 	}

@@ -14,7 +14,6 @@ umain(int argc, char **argv)
 {
 	envid_t ns_envid = sys_getenvid();
 	int i, r;
-
 	binaryname = "testoutput";
 
 	output_envid = fork();
@@ -24,7 +23,6 @@ umain(int argc, char **argv)
 		output(ns_envid);
 		return;
 	}
-
 	for (i = 0; i < TESTOUTPUT_COUNT; i++) {
 		if ((r = sys_page_alloc(0, pkt, PTE_P|PTE_U|PTE_W)) < 0)
 			panic("sys_page_alloc: %e", r);
@@ -37,6 +35,7 @@ umain(int argc, char **argv)
 	}
 
 	// Spin for a while, just in case IPC's or packets need to be flushed
-	for (i = 0; i < TESTOUTPUT_COUNT*2; i++)
+	for (i = 0; i < TESTOUTPUT_COUNT*2; i++) {
 		sys_yield();
+	}
 }

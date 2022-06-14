@@ -6,15 +6,15 @@ void
 output(envid_t ns_envid)
 {
 	binaryname = "ns_output";
-	
 	// LAB 6: Your code here:
 	// 	- read a packet from the network server
 	//	- send the packet to the device driver
 	for(;;) {
+		cprintf("starting loop\n");
 		envid_t from;
 		int perm;
 		int res = ipc_recv(&from, &nsipcbuf, &perm);
-		if (res) {
+		if (res < 0 ) {
 			panic("net/output.c: error: %e", res);
 		}
 		if (res != NSREQ_OUTPUT || ns_envid != from || !(perm & PTE_P))
@@ -31,6 +31,7 @@ output(envid_t ns_envid)
 			for(;;) {
 				int res = sys_transmit(nsipcbuf.pkt.jp_data + i, size);
 				if (!res) break;
+				cprintf("yeilding\n");
 				sys_yield();
 			}
 		}
