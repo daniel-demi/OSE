@@ -29,7 +29,7 @@ int attach_e1000(struct pci_func *pcif) {
 	tx_queue_desc = page2kva(tx_queue_page);
 	int i;
 	for (i = 0; i < 64; i++) {
-		tx_queue_desc[i].buffer_addr = (uint64_t)PADDR(&tx_buff_queue[i][0]);
+		tx_queue_desc[i].addr = (uint64_t)PADDR(&tx_buff_queue[i][0]);
 		tx_queue_desc[i].cmd = (1 <<3) | (1<<0);
 		tx_queue_desc[i].status |= E1000_TXD_STAT_DD;
 	}

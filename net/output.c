@@ -1,5 +1,4 @@
 #include "ns.h"
-#include <lib/ipc.h>
 
 extern union Nsipc nsipcbuf;
 
@@ -7,7 +6,7 @@ void
 output(envid_t ns_envid)
 {
 	binaryname = "ns_output";
-
+	
 	// LAB 6: Your code here:
 	// 	- read a packet from the network server
 	//	- send the packet to the device driver
@@ -16,7 +15,7 @@ output(envid_t ns_envid)
 		int perm;
 		int res = ipc_recv(&from, &nsipcbuf, &perm);
 		if (res) {
-			panic("net/output.c: error: %e", r);
+			panic("net/output.c: error: %e", res);
 		}
 		if (res != NSREQ_OUTPUT || ns_envid != from || !(perm & PTE_P))
 		{
@@ -30,7 +29,7 @@ output(envid_t ns_envid)
 			if (size > nsipcbuf.pkt.jp_len - i) 
 				size = nsipcbuf.pkt.jp_len - i;
 			for(;;) {
-				int res = sys_transmit(nsipcbuf.pkt.data + i, size);
+				int res = sys_transmit(nsipcbuf.pkt.jp_data + i, size);
 				if (!res) break;
 				sys_yield();
 			}

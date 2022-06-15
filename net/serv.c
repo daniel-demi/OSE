@@ -142,6 +142,7 @@ serve_init(uint32_t ipaddr, uint32_t netmask, uint32_t gw)
 	thread_wait(&done, 0, (uint32_t)~0);
 	lwip_core_lock();
 
+	printf("output env = %d\n", output_envid);
 	lwip_init(&nif, &output_envid, ipaddr, netmask, gw);
 
 	start_timer(&t_arp, &etharp_tmr, "arp timer", ARP_TMR_INTERVAL);
