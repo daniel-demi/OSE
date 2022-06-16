@@ -4,6 +4,8 @@
 #include <kern/e1000_hw.h>
 #include <inc/string.h>
 #include <inc/error.h>
+#include <kern/env.h>
+#include <kern/picirq.h>
 
 #define BAR0_AT(off) (bar0[off / 4])
 #define TRANS_QUEUE_SZ 64
@@ -66,14 +68,17 @@ int attach_e1000(struct pci_func *pcif) {
     BAR0_AT(E1000_RDT) = REC_QUEUE_SZ - 1;
 
     BAR0_AT(E1000_RCTL) |= E1000_RCTL_EN | E1000_RCTL_SECRC;
-	
+	BAR0_AT(E1000_IMS) |= E1000_IMS_TXDW | E1000_IMS_RXT0;
+	BAR0_AT(E1000_IMC) &= ~(E1000_IMC_TXDW | E1000_IMC_RXT0);
+	irq_setmask_8259A(irq_mask_8259A & ~(1<<11));
+
 	return 0;
 }
 
 int transmit(char *buff, int size) {
 	int tail = BAR0_AT(E1000_TDT);
 	if ((size > BUFF_SIZE) || !(tx_queue_desc[tail].status & E1000_TXD_STAT_DD)) {
-		return -1;
+		return -E_NIC_BUSY;
 	}
 	memcpy(tx_buff_queue[tail], buff, size);
 	tx_queue_desc[tail].status &= ~E1000_TXD_STAT_DD;
@@ -95,15 +100,31 @@ int receive(char *buff, int size) {
 }
 
 void e1000_interrupt(){
-	/*
-	if (BAR0_AT(E1000_ICR) & E1000_ICR_TXDW){
-		
+	cprintf("e1000 interrupt\n");
+	if (BAR0_AT(E1000_ICR) & E1000_ICR_TXDW){ //TRANSMIT
+	cprintf("Transmit interrupt\n");
+		BAR0_AT(E1000_ICR) &= ~E1000_ICR_TXDW;
+		int i;
+		for (i=0;i<NENV;i++){
+			if(envs[i].env_status == ENV_WAITING_FOR_TRANSMIT) {
+				envs[i].env_status = ENV_RUNNABLE;
+			}
+		}
+		return;
 	}
 
-	if (BAR0_AT(E1000_ICR_TXQE)){
-
+	if (BAR0_AT(E1000_ICR) & E1000_ICR_RXT0){ //RECEIVE
+	cprintf("Receive interrupt\n");
+		BAR0_AT(E1000_ICR) &= ~E1000_ICR_RXT0;
+		int i;
+		for (i=0;i<NENV;i++){
+			if(envs[i].env_status == ENV_WAITING_FOR_REC) {
+				envs[i].env_status = ENV_RUNNABLE;
+			}
+		}
+		return;
 	}
-	*/
+	
 }
 
 

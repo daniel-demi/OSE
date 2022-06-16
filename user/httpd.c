@@ -78,8 +78,8 @@ static int
 send_data(struct http_request *req, int fd)
 {
 	// LAB 6: Your code here.
+	char buff[READ_BUFF_SIZE] = { 0 };
     for(;;) {
-        char buff[READ_BUFF_SIZE] = { 0 };
         int bytes_read = read(fd, buff, READ_BUFF_SIZE);
         if (bytes_read <  0) return bytes_read;
         if (!bytes_read) break;
@@ -234,7 +234,7 @@ send_file(struct http_request *req)
 
 	// LAB 6: Your code here.
     fd = open(req->url, O_RDONLY);
-    if (fd) {
+    if (fd < 0) {
         send_error(req, 404);
         goto end;
     }

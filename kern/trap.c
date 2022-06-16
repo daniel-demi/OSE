@@ -104,6 +104,7 @@ trap_init(void)
 	SETGATE(idt[IRQ_OFFSET + IRQ_KBD],    0, GD_KT, irq_kbd,    0);
 	SETGATE(idt[IRQ_OFFSET + IRQ_SERIAL], 0, GD_KT, irq_serial, 0);
 	SETGATE(idt[IRQ_OFFSET + IRQ_SPURIOUS], 0, GD_KT, irq_spurious, 0);
+	SETGATE(idt[IRQ_OFFSET + IRQ_NET], 0, GD_KT, irq_net, 0);
 	// Per-CPU setup 
 	trap_init_percpu();
 }
@@ -252,6 +253,13 @@ trap_dispatch(struct Trapframe *tf)
 		serial_intr();
 		return;
 	}
+	if (tf->tf_trapno == IRQ_OFFSET + IRQ_NET){
+		cprintf("net interrupt\n");
+		e1000_interrupt();
+		lapic_eoi();
+		irq_eoi();
+		return;
+	}
 
 	// Add time tick increment to clock interrupts.
 	// Be careful! In multiprocessors, clock interrupts are
@@ -271,11 +279,7 @@ trap_dispatch(struct Trapframe *tf)
 		return;
 	}
 
-	if (tf->tf_trapno == IRQ_OFFSET + IRQ_NET){
-		e1000_interrupt();
-		lapic_eoi();
-		return;
-	}
+	
 }
 
 void

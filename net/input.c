@@ -21,8 +21,10 @@ input(envid_t ns_envid)
     {
         sys_page_alloc(0, &nsipcbuf, PTE_U | PTE_W | PTE_P);
         int len;
-        while ((len = sys_receive(nsipcbuf.pkt.jp_data, PGSIZE - sizeof(int))) == -E_REC_QUEUE_EMPTY)
+        while ((len = sys_receive(nsipcbuf.pkt.jp_data, PGSIZE - sizeof(int))) == -E_REC_QUEUE_EMPTY){
+            sys_env_set_status(sys_getenvid(), ENV_WAITING_FOR_REC);
             sys_yield();
+        }
         nsipcbuf.pkt.jp_len = len;
         ipc_send(ns_envid, NSREQ_INPUT, &nsipcbuf, PTE_P | PTE_W | PTE_U);
         sys_page_unmap(0, &nsipcbuf);
