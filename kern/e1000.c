@@ -90,7 +90,20 @@ int receive(char *buff, int size) {
     rx_queue_desc[next].status &= ~E1000_RXD_STAT_DD;
     if (rx_queue_desc[next].length < size) size = rx_queue_desc[next].length;
     memcpy(buff, rx_buff_queue[next], size);
+	BAR0_AT(E1000_RDT) = next;
     return size;
+}
+
+void e1000_interrupt(){
+	/*
+	if (BAR0_AT(E1000_ICR) & E1000_ICR_TXDW){
+		
+	}
+
+	if (BAR0_AT(E1000_ICR_TXQE)){
+
+	}
+	*/
 }
 
 
