@@ -33,6 +33,10 @@
 #define _E1000_HW_H_
 
 
+/* Ours Deifnes */
+#define E1000_MAC_LOW 0x12005452
+#define E1000_MAC_HIGH 0x56340000
+
 /* PCI Device IDs */
 #define E1000_DEV_ID_82542               0x1000
 #define E1000_DEV_ID_82543GC_FIBER       0x1001

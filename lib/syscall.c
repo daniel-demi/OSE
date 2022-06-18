@@ -127,3 +127,8 @@ int sys_transmit(char * buff, int size)
 {
 	return syscall(SYS_transmit, 0, (uint32_t) buff, size, 0, 0, 0);
 }
+
+int sys_receive(char *buff, int size)
+{
+    return syscall(SYS_receive, 0, (uint32_t) buff, size, 0, 0, 0);
+}

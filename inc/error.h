@@ -27,6 +27,7 @@ enum {
 	E_NOT_SUPP	,	// Operation not supported
 	
 	E_NIC_BUSY,
+    E_REC_QUEUE_EMPTY,
 
 	MAXERROR
 };

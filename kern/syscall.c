@@ -421,6 +421,11 @@ int sys_transmit(char *buff, int size) {
 	return transmit(buff, size);
 }
 
+int sys_receive(char *buff, int size) {
+    user_mem_assert(curenv, buff, size, PTE_P | PTE_U | PTE_W);
+    return receive(buff, size);
+}
+
 // Dispatches to the correct kernel function, passing the arguments.
 int32_t
 syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, uint32_t a5)
@@ -464,6 +469,8 @@ syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, 
 	    return sys_time_msec();
 	case SYS_transmit:
 		return sys_transmit((char *)a1, (int)a2);
+    case SYS_receive:
+        return sys_receive((char *)a1, (int)a2);
 	default:
 		return -E_INVAL;
 	}
