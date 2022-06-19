@@ -35,7 +35,7 @@
 
 /* Ours Deifnes */
 #define E1000_MAC_LOW 0x12005452
-#define E1000_MAC_HIGH 0x56340000
+#define E1000_MAC_HIGH 0x5634
 
 /* PCI Device IDs */
 #define E1000_DEV_ID_82542               0x1000

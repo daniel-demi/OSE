@@ -30,9 +30,11 @@ output(envid_t ns_envid)
 				size = nsipcbuf.pkt.jp_len - i;
 			for(;;) {
 				int res = sys_transmit(nsipcbuf.pkt.jp_data + i, size);
+				if (res == -E_NIC_BUSY){
+					sys_env_set_status(sys_getenvid(), ENV_WAITING_FOR_TRANSMIT);
+					sys_yield();
+				} 
 				if (!res) break;
-				cprintf("yeilding\n");
-				sys_yield();
 			}
 		}
 	}
