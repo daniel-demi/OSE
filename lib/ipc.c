@@ -52,7 +52,6 @@ ipc_recv(envid_t *from_env_store, void *pg, int *perm_store)
 void
 ipc_send(envid_t to_env, uint32_t val, void *pg, int perm)
 {
-	cprintf("[%08x] Attempting ipc send to %08x\n", thisenv->env_id, to_env);
 	// LAB 4: Your code here.
 	if (!pg) pg= (void*)(UTOP+1);
 	int res;

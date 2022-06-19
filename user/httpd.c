@@ -10,6 +10,7 @@
 
 #define BUFFSIZE 512
 #define MAXPENDING 5	// Max connection requests
+#define READ_BUFF_SIZE 64
 
 struct http_request {
 	int sock;
@@ -77,8 +78,17 @@ static int
 send_data(struct http_request *req, int fd)
 {
 	// LAB 6: Your code here.
-	panic("send_data not implemented");
+    for(;;) {
+        char buff[READ_BUFF_SIZE] = { 0 };
+        int bytes_read = read(fd, buff, READ_BUFF_SIZE);
+        if (bytes_read <  0) return bytes_read;
+        if (!bytes_read) break;
+        int bytes_written = write(req->sock, buff, bytes_read);
+        if (bytes_written != bytes_read) die("Failed to send data");
+    }
+    return 0;
 }
+
 
 static int
 send_size(struct http_request *req, off_t size)
@@ -223,7 +233,23 @@ send_file(struct http_request *req)
 	// set file_size to the size of the file
 
 	// LAB 6: Your code here.
-	panic("send_file not implemented");
+    fd = open(req->url, O_RDONLY);
+    if (fd) {
+        send_error(req, 404);
+        goto end;
+    }
+
+    struct Stat st;
+    r = fstat(fd, &st);
+    
+    if (r < 0) goto end;
+
+    if (st.st_isdir) {
+        send_error(req, 404);
+        goto end;
+    }
+
+    file_size = st.st_size;
 
 	if ((r = send_header(req, 200)) < 0)
 		goto end;
