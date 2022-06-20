@@ -1,0 +1,17 @@
+1. 
+2.
+3.
+4. A fucking long time
+
+Challenge implementations:
+
+First challenge - challenge 1:
+In order to implement this challenge we loaded and read the relevant information from the eeprom and then saved it in the 
+Reading from EEPROM: We accessed the EERD register and requested the mac address by putting the corresponding in the address field and 
+setting the start bit. Once the done bit was set, we were then able to read the address from the data field.
+Setting the mac address in the e1000: We called the read_mac_address function and saved the results in E1000_RA
+Creating syscall: Went through all the usual steps of creating a syscall and in the function itself we just called the read_mac_address function that we wrote in e1000.c
+Setting mac address in lwIP: The mac address was hardwired into the file jif.c so instead we used the syscall we made to get the mac address and split it up accordingly.
+
+Second challenge - challenge :
+

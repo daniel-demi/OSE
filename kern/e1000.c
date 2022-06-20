@@ -102,9 +102,9 @@ int receive(char *buff, int size) {
 }
 
 void e1000_interrupt(){
-	cprintf("e1000 interrupt\n");
+	// cprintf("e1000 interrupt\n");
 	if (BAR0_AT(E1000_ICR) & E1000_ICR_TXDW){ //TRANSMIT
-	cprintf("Transmit interrupt\n");
+	// cprintf("Transmit interrupt\n");
 		BAR0_AT(E1000_ICR) &= ~E1000_ICR_TXDW;
 		int i;
 		for (i=0;i<NENV;i++){
@@ -116,7 +116,7 @@ void e1000_interrupt(){
 	}
 
 	if (BAR0_AT(E1000_ICR) & E1000_ICR_RXT0){ //RECEIVE
-	cprintf("Receive interrupt\n");
+	// cprintf("Receive interrupt\n");
 		BAR0_AT(E1000_ICR) &= ~E1000_ICR_RXT0;
 		int i;
 		for (i=0;i<NENV;i++){
