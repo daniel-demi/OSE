@@ -426,6 +426,10 @@ int sys_receive(char *buff, int size) {
     return receive(buff, size);
 }
 
+void sys_get_mac_address(uint16_t* w0,uint16_t* w1, uint16_t* w2){
+	read_mac_addr(w0,w1,w2);
+}
+
 // Dispatches to the correct kernel function, passing the arguments.
 int32_t
 syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, uint32_t a5)
@@ -471,6 +475,9 @@ syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, 
 		return sys_transmit((char *)a1, (int)a2);
     case SYS_receive:
         return sys_receive((char *)a1, (int)a2);
+	case SYS_get_mac_address:
+		sys_get_mac_address((uint16_t*) a1,(uint16_t*) a2, (uint16_t*) a3);
+		return 0;
 	default:
 		return -E_INVAL;
 	}

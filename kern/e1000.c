@@ -53,9 +53,11 @@ int attach_e1000(struct pci_func *pcif) {
     BAR0_AT(E1000_RDBAL) = page2pa(rx_queue_page);
     BAR0_AT(E1000_RDLEN) = REC_QUEUE_SZ * sizeof(struct e1000_rx_desc);
     rx_queue_desc = page2kva(rx_queue_page);
-
-    BAR0_AT(E1000_RA) = E1000_MAC_LOW;
-    BAR0_AT(E1000_RA + 4) = E1000_MAC_HIGH;
+	uint16_t w0, w1, w2;
+	read_mac_addr(&w0, &w1, &w2);
+	cprintf("w0=%02x, w1=%02x, w3=%02x\n", w0, w1, w2);
+    BAR0_AT(E1000_RA) = w0 | (w1 << 16);
+    BAR0_AT(E1000_RA + 4) = w2;
     BAR0_AT(E1000_RA + 4) |= E1000_RAH_AV;
 
     BAR0_AT(E1000_MTA) = 0;
@@ -100,9 +102,9 @@ int receive(char *buff, int size) {
 }
 
 void e1000_interrupt(){
-	cprintf("e1000 interrupt\n");
+	// cprintf("e1000 interrupt\n");
 	if (BAR0_AT(E1000_ICR) & E1000_ICR_TXDW){ //TRANSMIT
-	cprintf("Transmit interrupt\n");
+	// cprintf("Transmit interrupt\n");
 		BAR0_AT(E1000_ICR) &= ~E1000_ICR_TXDW;
 		int i;
 		for (i=0;i<NENV;i++){
@@ -114,7 +116,7 @@ void e1000_interrupt(){
 	}
 
 	if (BAR0_AT(E1000_ICR) & E1000_ICR_RXT0){ //RECEIVE
-	cprintf("Receive interrupt\n");
+	// cprintf("Receive interrupt\n");
 		BAR0_AT(E1000_ICR) &= ~E1000_ICR_RXT0;
 		int i;
 		for (i=0;i<NENV;i++){
@@ -127,5 +129,17 @@ void e1000_interrupt(){
 	
 }
 
+uint16_t read_eeprom_from(int addr) {
+	BAR0_AT(E1000_EERD) |= (addr << E1000_EEPROM_RW_ADDR_SHIFT) | E1000_EEPROM_RW_REG_START;
+	while (!(BAR0_AT(E1000_EERD) & E1000_EEPROM_RW_REG_DONE));
+	uint16_t res = BAR0_AT(E1000_EERD) >> E1000_EEPROM_RW_REG_DATA;
+	BAR0_AT(E1000_EERD) &= 0;
+	return res;
+}
 
-	
+void read_mac_addr(uint16_t *w0, uint16_t *w1, uint16_t *w2)
+ {
+	 *w0 = read_eeprom_from(0);
+	 *w1 = read_eeprom_from(0x1);
+	 *w2 = read_eeprom_from(0x2);
+ }	

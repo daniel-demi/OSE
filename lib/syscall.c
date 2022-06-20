@@ -132,3 +132,7 @@ int sys_receive(char *buff, int size)
 {
     return syscall(SYS_receive, 0, (uint32_t) buff, size, 0, 0, 0);
 }
+
+int sys_get_mac_address(uint16_t* w0, uint16_t* w1, uint16_t* w2){
+	return syscall(SYS_get_mac_address, 0, (uint32_t) w0, (uint32_t) w1, (uint32_t) w2, 0,0);
+}

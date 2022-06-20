@@ -10,4 +10,8 @@ int receive(char *buff, int size);
 
 void e1000_interrupt();
 
+uint16_t read_eeprom_from(int addr);
+
+void read_mac_addr(uint16_t *w0, uint16_t *w1, uint16_t *w2);
+
 #endif	// JOS_KERN_E1000_H

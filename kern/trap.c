@@ -254,7 +254,7 @@ trap_dispatch(struct Trapframe *tf)
 		return;
 	}
 	if (tf->tf_trapno == IRQ_OFFSET + IRQ_NET){
-		cprintf("net interrupt\n");
+		// cprintf("net interrupt\n");
 		e1000_interrupt();
 		lapic_eoi();
 		irq_eoi();
