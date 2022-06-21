@@ -416,14 +416,22 @@ sys_time_msec(void)
 	return time_msec();
 }
 
-int sys_transmit(char *buff, int size) {
-	user_mem_assert(curenv, buff, size, PTE_P | PTE_U);
-	return transmit(buff, size);
+// int sys_transmit(char *buff, int size) {
+// 	user_mem_assert(curenv, buff, size, PTE_P | PTE_U);
+// 	return transmit(buff, size);
+// }
+
+// int sys_receive(char , int size) {
+//     user_mem_assert(curenv, buff, size, PTE_P | PTE_U | PTE_W);
+//     return receive(buff, size);
+// }
+int sys_transmit(envid_t envid, int size) {
+	return transmit(envid, size);
 }
 
-int sys_receive(char *buff, int size) {
-    user_mem_assert(curenv, buff, size, PTE_P | PTE_U | PTE_W);
-    return receive(buff, size);
+int sys_receive(envid_t envid, int size) {
+    // user_mem_assert(curenv, buff, size, PTE_P | PTE_U | PTE_W);
+    return receive(envid, size);
 }
 
 void sys_get_mac_address(uint16_t* w0,uint16_t* w1, uint16_t* w2){
