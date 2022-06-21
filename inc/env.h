@@ -28,6 +28,7 @@ typedef int32_t envid_t;
 #define LOG2NENV		10
 #define NENV			(1 << LOG2NENV)
 #define ENVX(envid)		((envid) & (NENV - 1))
+#define BUFF_SIZE		2048
 
 // Values of env_status in struct Env
 enum {
@@ -69,6 +70,13 @@ struct Env {
 	uint32_t env_ipc_value;		// Data value sent to us
 	envid_t env_ipc_from;		// envid of the sender
 	int env_ipc_perm;		// Perm of page mapping received
+
+	// Challenge
+	char tx_buff[BUFF_SIZE];
+	int tx_size;
+
+	char rx_buff[BUFF_SIZE];
+	int rx_size;
 };
 
 #endif // !JOS_INC_ENV_H
