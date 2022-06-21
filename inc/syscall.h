@@ -21,6 +21,8 @@ enum {
 	SYS_transmit,
     SYS_receive,
 	SYS_get_mac_address,
+	SYS_update_tx_info,
+	SYS_update_rx_info,
 	NSYSCALLS
 };
 

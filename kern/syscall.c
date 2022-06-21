@@ -416,18 +416,34 @@ sys_time_msec(void)
 	return time_msec();
 }
 
-int sys_transmit(char *buff, int size) {
-	user_mem_assert(curenv, buff, size, PTE_P | PTE_U);
-	return transmit(buff, size);
+int sys_transmit(envid_t envid, int size) {
+	return transmit(envid, size);
 }
 
-int sys_receive(char *buff, int size) {
-    user_mem_assert(curenv, buff, size, PTE_P | PTE_U | PTE_W);
-    return receive(buff, size);
+int sys_receive(envid_t envid, int size) {
+    return receive(envid, size);
 }
 
 void sys_get_mac_address(uint16_t* w0,uint16_t* w1, uint16_t* w2){
 	read_mac_addr(w0,w1,w2);
+}
+
+int sys_update_tx_info(envid_t envid, char *buff, int size) {
+	struct Env *env;
+	int res = envid2env(envid, &env, 0);
+	if (res < 0) return res;
+	env->tx_buff = buff;
+	env->tx_size = size;
+	return 0;
+}
+
+int sys_update_rx_info(envid_t envid, void *buff, int size) {
+	struct Env *env;
+	int res = envid2env(envid, &env, 0);
+	if (res < 0) return res;
+	env->rx_nsipcfub = buff;
+	env->rx_size = size;
+	return 0;
 }
 
 // Dispatches to the correct kernel function, passing the arguments.
@@ -472,12 +488,16 @@ syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, 
 	case SYS_time_msec:
 	    return sys_time_msec();
 	case SYS_transmit:
-		return sys_transmit((char *)a1, (int)a2);
+		return sys_transmit((envid_t)a1, (int)a2);
     case SYS_receive:
-        return sys_receive((char *)a1, (int)a2);
+        return sys_receive((envid_t)a1, (int)a2);
 	case SYS_get_mac_address:
 		sys_get_mac_address((uint16_t*) a1,(uint16_t*) a2, (uint16_t*) a3);
 		return 0;
+	case SYS_update_tx_info:
+		return sys_update_tx_info((envid_t)a1, (char *)a2, (int)a3);
+	case SYS_update_rx_info:
+		return sys_update_rx_info((envid_t)a1, (void *)a2, (int)a3);
 	default:
 		return -E_INVAL;
 	}

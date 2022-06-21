@@ -14,15 +14,21 @@ input(envid_t ns_envid)
 	// Hint: When you IPC a page to the network server, it will be
 	// reading from it for a while, so don't immediately receive
 	// another packet in to the same physical page.
-    
-    // sys_page_unmap(0, &nsipcbuf);
     sys_page_unmap(0, &nsipcbuf); // just in case
     for(;;)
     {
-        sys_page_alloc(0, &nsipcbuf, PTE_U | PTE_W | PTE_P);
+        envid_t eid = sys_getenvid();
+        int data_size = PGSIZE - sizeof(int);
+        int res = sys_update_rx_info(eid, &nsipcbuf, data_size);
+        if (res < 0) {
+            panic("Couldn't update data: %e", res);
+        }
         int len;
-        while ((len = sys_receive(nsipcbuf.pkt.jp_data, PGSIZE - sizeof(int))) == -E_REC_QUEUE_EMPTY){
-            sys_env_set_status(sys_getenvid(), ENV_WAITING_FOR_REC);
+        while ((len = sys_receive(eid, data_size)) == -E_REC_QUEUE_EMPTY) {
+            if (len == -E_BAD_ENV || len == -E_NO_MEM) {
+                panic("Couldn't sys_receive: %e", len);
+            }
+            sys_env_set_status(eid, ENV_WAITING_FOR_REC);
             sys_yield();
         }
         nsipcbuf.pkt.jp_len = len;
