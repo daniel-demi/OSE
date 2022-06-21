@@ -143,3 +143,8 @@ void read_mac_addr(uint16_t *w0, uint16_t *w1, uint16_t *w2)
 	 *w1 = read_eeprom_from(0x1);
 	 *w2 = read_eeprom_from(0x2);
  }	
+
+ physaddr_t uva2pa(struct Env *env, void *va) {
+	 struct PageInfo *uPage = page_lookup(env->env_pgdir, va, NULL);
+	 return page2pa(uPage) + PGOFF((uintptr_t)va);
+ }
