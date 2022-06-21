@@ -38,7 +38,7 @@ int attach_e1000(struct pci_func *pcif) {
 	int i;
 	for (i = 0; i < TRANS_QUEUE_SZ; i++) {
 		tx_queue_desc[i].buffer_addr = 0;
-		tx_queue_desc[i].cmd = (1 <<3) | 1;
+		tx_queue_desc[i].cmd = (1 <<3);// | 1;
 		tx_queue_desc[i].status |= E1000_TXD_STAT_DD;
 	}
 
@@ -89,6 +89,7 @@ int transmit(envid_t envid, int size) {
 	tx_queue_desc[tail].status &= ~E1000_TXD_STAT_DD;
 	tx_queue_desc[tail].length = size;
 	BAR0_AT(E1000_TDT) = (tail + 1) % TRANS_QUEUE_SZ;
+	print_vendor();
 	return 0;
 }
 
@@ -154,4 +155,12 @@ void read_mac_addr(uint16_t *w0, uint16_t *w1, uint16_t *w2)
  physaddr_t uva2pa(struct Env *env, void *va) {
 	 struct PageInfo *uPage = page_lookup(env->env_pgdir, va, NULL);
 	 return page2pa(uPage) + PGOFF((uintptr_t)va);
+ }
+
+ void print_vendor() {
+	 BAR0_AT(E1000_EERD) |= (0xe << E1000_EEPROM_RW_ADDR_SHIFT) | E1000_EEPROM_RW_REG_START;
+	 while (!(BAR0_AT(E1000_EERD) & E1000_EEPROM_RW_REG_DONE));
+	 uint16_t res = BAR0_AT(E1000_EERD) >> E1000_EEPROM_RW_REG_DATA;
+	 BAR0_AT(E1000_EERD) &= 0;
+	 cprintf("Vendor: %04x\n", res);
  }

@@ -20,7 +20,7 @@
 void cons_init(void);
 int cons_getc(void);
 
-void kbd_intr(void); // irq 1
-void serial_intr(void); // irq 4
+int kbd_intr(void); // irq 1
+int serial_intr(void); // irq 4
 
 #endif /* _CONSOLE_H_ */

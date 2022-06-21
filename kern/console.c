@@ -9,7 +9,7 @@
 #include <kern/console.h>
 #include <kern/picirq.h>
 
-static void cons_intr(int (*proc)(void));
+static int cons_intr(int (*proc)(void));
 static void cons_putc(int c);
 
 // Stupid I/O delay routine necessitated by historical PC design flaws
@@ -56,11 +56,12 @@ serial_proc_data(void)
 	return inb(COM1+COM_RX);
 }
 
-void
+int
 serial_intr(void)
 {
 	if (serial_exists)
-		cons_intr(serial_proc_data);
+		return cons_intr(serial_proc_data);
+	return -1;
 }
 
 static void
@@ -358,9 +359,13 @@ kbd_proc_data(void)
 			c += 'a' - 'A';
 	}
 
+	if (!(~shift & CTL) && (c == 'c' || c == 'C')) {
+		return -2;
+	}
+
 	// Process special keys
 	// Ctrl-Alt-Del: reboot
-	if (!(~shift & (CTL | ALT)) && c == KEY_DEL) {
+	if (!(~shift & (CTL)) && c == KEY_DEL) {
 		cprintf("Rebooting!\n");
 		outb(0x92, 0x3); // courtesy of Chris Frost
 	}
@@ -368,10 +373,10 @@ kbd_proc_data(void)
 	return c;
 }
 
-void
+int
 kbd_intr(void)
 {
-	cons_intr(kbd_proc_data);
+	return cons_intr(kbd_proc_data);
 }
 
 static void
@@ -399,18 +404,22 @@ static struct {
 
 // called by device interrupt routines to feed input characters
 // into the circular console input buffer.
-static void
+static int
 cons_intr(int (*proc)(void))
 {
 	int c;
 
 	while ((c = (*proc)()) != -1) {
+		if (c == -2) {
+			return 1;
+		}
 		if (c == 0)
 			continue;
 		cons.buf[cons.wpos++] = c;
 		if (cons.wpos == CONSBUFSIZE)
 			cons.wpos = 0;
 	}
+	return 0;
 }
 
 // return the next input character from the console, or 0 if none waiting
