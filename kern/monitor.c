@@ -311,7 +311,6 @@ runcmd(char *buf, struct Trapframe *tf)
 void
 monitor(struct Trapframe *tf)
 {
-	transmit("Hello", 6);
 	char *buf;
 
 	cprintf("Welcome to the JOS kernel monitor!\n");

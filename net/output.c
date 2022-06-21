@@ -29,7 +29,11 @@ output(envid_t ns_envid)
 			if (size > nsipcbuf.pkt.jp_len - i) 
 				size = nsipcbuf.pkt.jp_len - i;
 			for(;;) {
-				int res = sys_transmit(nsipcbuf.pkt.jp_data + i, size);
+				envid_t curenv = sys_getenvid();
+				if ((res = sys_update_tx_info(curenv, nsipcbuf.pkt.jp_data + i, size)) < 0) {
+					panic("sys_update_tx_info faild: %e", res);
+				}
+				int res = sys_transmit(curenv, size);
 				if (res == -E_NIC_BUSY){
 					sys_env_set_status(sys_getenvid(), ENV_WAITING_FOR_TRANSMIT);
 					sys_yield();
