@@ -148,3 +148,11 @@ int sys_update_rx_info(envid_t envid, void *buff) {
 int sys_change_ticks(double* speed){
 	return syscall(SYS_change_ticks, 0, (uint32_t)speed, 0,0,0,0);
 }
+
+void sys_change_rx_pkt() {
+	syscall(SYS_change_rx_pkt, 0, 0, 0, 0, 0, 0);
+}
+
+void sys_change_tx_pkt() {
+	syscall(SYS_change_tx_pkt, 0, 0, 0, 0, 0, 0);
+}

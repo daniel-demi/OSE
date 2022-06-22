@@ -8,6 +8,8 @@ static envid_t output_envid;
 
 static struct jif_pkt *pkt = (struct jif_pkt*)REQVA;
 
+#define SERO_COPY_POC_TX 0
+
 
 void
 umain(int argc, char **argv)
@@ -29,8 +31,26 @@ umain(int argc, char **argv)
 		pkt->jp_len = snprintf(pkt->jp_data,
 				       PGSIZE - sizeof(pkt->jp_len),
 				       "Packet %02d", i);
-		cprintf("Transmitting packet %d\n", i);
-		ipc_send(output_envid, NSREQ_OUTPUT, pkt, PTE_P|PTE_W|PTE_U);
+		if (SERO_COPY_POC_TX) {
+			cprintf("The packet before the transmition is:\n");
+			int j;
+			for (j = 0; j < pkt->jp_len; j++) cprintf("%02x ", pkt->jp_data[j]);
+			cprintf("\n");
+			cprintf("Transmitting packet %d\n", i);
+			ipc_send(output_envid, NSREQ_OUTPUT, pkt, PTE_P|PTE_W|PTE_U);
+			for(;;) {
+				envid_t from;
+				ipc_recv(&from, 0, 0); // wait for a signal from ouput env that it finished transmitting
+				if (from == output_envid) break;
+			}
+			sys_change_tx_pkt();
+			cprintf("The packet after change transmtion:\n");
+			for (j = 0; j < pkt->jp_len; j++) cprintf("%02x ", pkt->jp_data[j]);
+			cprintf("\n\n");
+		} else {
+			cprintf("Transmitting packet %d\n", i);
+			ipc_send(output_envid, NSREQ_OUTPUT, pkt, PTE_P|PTE_W|PTE_U);
+		}
 		sys_page_unmap(0, pkt);
 	}
 

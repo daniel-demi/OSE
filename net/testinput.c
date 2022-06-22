@@ -6,6 +6,7 @@ static envid_t input_envid;
 
 static struct jif_pkt *pkt = (struct jif_pkt*)REQVA;
 
+#define ZERO_COPY_POC_RX 0
 
 static void
 announce(void)
@@ -102,10 +103,17 @@ umain(int argc, char **argv)
 			panic("IPC from unexpected environment %08x", whom);
 		if (req != NSREQ_INPUT)
 			panic("Unexpected IPC %d", req);
-
-		hexdump("input: ", pkt->jp_data, pkt->jp_len);
-		cprintf("\n");
-
+		if (!ZERO_COPY_POC_RX) {
+			hexdump("input: ", pkt->jp_data, pkt->jp_len);
+			cprintf("\n");
+		} else {
+			cprintf("The received packet:\n");
+			hexdump("input: ", pkt->jp_data, pkt->jp_len);
+			sys_change_rx_pkt();
+			cprintf("The packet after change received packet:\n");
+			hexdump("input: ", pkt->jp_data, pkt->jp_len);
+			cprintf("\n\n");
+		}
 		// Only indicate that we're waiting for packets once
 		// we've received the ARP reply
 		if (first)

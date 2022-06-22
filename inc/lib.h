@@ -68,6 +68,8 @@ int sys_update_tx_info(envid_t envid, char *buff);
 int sys_update_rx_info(envid_t envid, void *buff);
 int sys_get_mac_address(uint16_t* w0,uint16_t* w1, uint16_t* w2);
 int sys_change_ticks(double* speed);
+void sys_change_rx_pkt();
+void sys_change_tx_pkt();
 
 // This must be inlined.  Exercise for reader: why?
 static __inline envid_t __attribute__((always_inline))

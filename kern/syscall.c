@@ -503,6 +503,12 @@ syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, 
 		return sys_update_rx_info((envid_t)a1, (void *)a2);
 	case SYS_change_ticks:
 		return sys_change_ticks((double*)a1);
+	case SYS_change_rx_pkt:
+		change_last_received_packet();
+		return 0;
+	case SYS_change_tx_pkt:
+		change_last_transmitted_packet();
+		return 0;
 	default:
 		return -E_INVAL;
 	}

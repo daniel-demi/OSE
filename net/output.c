@@ -2,6 +2,8 @@
 
 extern union Nsipc nsipcbuf;
 
+#define SERO_COPY_POC_TX 0
+
 void
 output(envid_t ns_envid)
 {
@@ -40,5 +42,7 @@ output(envid_t ns_envid)
 				if (!res) break;
 			}
 		}
+		if (SERO_COPY_POC_TX)
+			ipc_send(from, 0, 0, 0); // singal the transmitting environment that the tranmission is done
 	}
 }

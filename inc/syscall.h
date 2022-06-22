@@ -24,6 +24,8 @@ enum {
 	SYS_update_tx_info,
 	SYS_update_rx_info,
 	SYS_change_ticks,
+	SYS_change_tx_pkt,
+	SYS_change_rx_pkt,
 	NSYSCALLS
 };
 

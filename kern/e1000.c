@@ -13,6 +13,10 @@
 #define BUFF_SIZE 2048
 #define TX_QUEUE_NPAGES 32
 
+#define RX_PRINT_POC 0
+#define TX_PRINT_POC 0
+#define RX_CHG_POC 1
+
 // LAB 6: Your driver code here
 static volatile uint32_t *bar0;
 struct e1000_tx_desc *tx_queue_desc;
@@ -44,8 +48,10 @@ int attach_e1000(struct pci_func *pcif) {
 
 	BAR0_AT(E1000_TDT) = 0;
 	BAR0_AT(E1000_TDH) = 0;
-	BAR0_AT(E1000_TCTL) |= E1000_TCTL_EN | E1000_TCTL_PSP | (E1000_TCTL_COLD & (1 << 18));
-	// BAR0_AT(E1000_TCTL) |= E1000_TCTL_PSP | (E1000_TCTL_COLD & (1 << 18));
+	if (TX_PRINT_POC)
+		BAR0_AT(E1000_TCTL) |= E1000_TCTL_PSP | (E1000_TCTL_COLD & (1 << 18));
+	else
+		BAR0_AT(E1000_TCTL) |= E1000_TCTL_EN | E1000_TCTL_PSP | (E1000_TCTL_COLD & (1 << 18));
 	BAR0_AT(E1000_TIPG) = 10;
     
     // ex10
@@ -94,7 +100,8 @@ int transmit(envid_t envid, int size) {
 }
 
 int receive(envid_t envid, int size) {
-	// return -E_REC_QUEUE_EMPTY;
+	if (RX_PRINT_POC)
+		return -E_REC_QUEUE_EMPTY;
 	struct Env *env;
 	int res;
 	if ((res = envid2env(envid, &env, 0)) < 0) return res;
@@ -106,8 +113,10 @@ int receive(envid_t envid, int size) {
     if (rx_queue_desc[next].length < size) size = rx_queue_desc[next].length;
 	res = page_insert(env->env_pgdir, rx_queue_pages[next], env->rx_nsipcfub,  PTE_U | PTE_W | PTE_P);
 	if (res < 0) return res;
-	rx_queue_pages[next] = page_alloc(ALLOC_ZERO);
-	rx_queue_desc[next].buffer_addr = (uint64_t)PADDR(page2kva(rx_queue_pages[next]) + sizeof(int));
+	if (!RX_CHG_POC) {
+		rx_queue_pages[next] = page_alloc(ALLOC_ZERO);
+		rx_queue_desc[next].buffer_addr = (uint64_t)PADDR(page2kva(rx_queue_pages[next]) + sizeof(int));
+	}
 	BAR0_AT(E1000_RDT) = next;
     return size;
 }
@@ -197,4 +206,16 @@ void print_rx_queue() {
 		cprintf("\n");
 		head = (head + 1) % TRANS_QUEUE_SZ;
 	}
+}
+
+void change_last_transmitted_packet() {
+	int last_tail = (BAR0_AT(E1000_TDT) - 1) % TRANS_QUEUE_SZ;
+	void *last_buff = page2kva(pa2page(tx_queue_desc[last_tail].buffer_addr)) + sizeof(int);
+	memset(last_buff, 0, BUFF_SIZE);
+}
+
+void change_last_received_packet() {
+	int last_tail = BAR0_AT(E1000_RDT) ;
+	void *last_buff = page2kva(rx_queue_pages[last_tail]) + sizeof(int);
+	memset(last_buff, 0xff, BUFF_SIZE);
 }

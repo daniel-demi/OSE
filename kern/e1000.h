@@ -20,4 +20,8 @@ physaddr_t uva2pa(struct Env *env, void *va);
 void print_tx_queue();
 
 void print_rx_queue();
+
+void change_last_transmitted_packet();
+void change_last_received_packet();
+
 #endif	// JOS_KERN_E1000_H
