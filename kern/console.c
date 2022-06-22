@@ -359,7 +359,7 @@ kbd_proc_data(void)
 			c += 'a' - 'A';
 	}
 
-	if (!(~shift & CTL) && (c == 'c' || c == 'C')) {
+	if (!(~shift & CTL) && (c == C('c') || c == C('C'))) {
 		return -2;
 	}
 

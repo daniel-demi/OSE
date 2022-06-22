@@ -38,13 +38,14 @@ int attach_e1000(struct pci_func *pcif) {
 	int i;
 	for (i = 0; i < TRANS_QUEUE_SZ; i++) {
 		tx_queue_desc[i].buffer_addr = 0;
-		tx_queue_desc[i].cmd = (1 <<3);// | 1;
+		tx_queue_desc[i].cmd  = (1 <<3) | 1;
 		tx_queue_desc[i].status |= E1000_TXD_STAT_DD;
 	}
 
 	BAR0_AT(E1000_TDT) = 0;
 	BAR0_AT(E1000_TDH) = 0;
 	BAR0_AT(E1000_TCTL) |= E1000_TCTL_EN | E1000_TCTL_PSP | (E1000_TCTL_COLD & (1 << 18));
+	// BAR0_AT(E1000_TCTL) |= E1000_TCTL_PSP | (E1000_TCTL_COLD & (1 << 18));
 	BAR0_AT(E1000_TIPG) = 10;
     
     // ex10
@@ -89,12 +90,11 @@ int transmit(envid_t envid, int size) {
 	tx_queue_desc[tail].status &= ~E1000_TXD_STAT_DD;
 	tx_queue_desc[tail].length = size;
 	BAR0_AT(E1000_TDT) = (tail + 1) % TRANS_QUEUE_SZ;
-	print_vendor();
 	return 0;
 }
 
 int receive(envid_t envid, int size) {
-
+	// return -E_REC_QUEUE_EMPTY;
 	struct Env *env;
 	int res;
 	if ((res = envid2env(envid, &env, 0)) < 0) return res;
@@ -157,10 +157,44 @@ void read_mac_addr(uint16_t *w0, uint16_t *w1, uint16_t *w2)
 	 return page2pa(uPage) + PGOFF((uintptr_t)va);
  }
 
- void print_vendor() {
-	 BAR0_AT(E1000_EERD) |= (0xe << E1000_EEPROM_RW_ADDR_SHIFT) | E1000_EEPROM_RW_REG_START;
-	 while (!(BAR0_AT(E1000_EERD) & E1000_EEPROM_RW_REG_DONE));
-	 uint16_t res = BAR0_AT(E1000_EERD) >> E1000_EEPROM_RW_REG_DATA;
-	 BAR0_AT(E1000_EERD) &= 0;
-	 cprintf("Vendor: %04x\n", res);
- }
+void print_tx_queue() {
+	int head = BAR0_AT(E1000_TDH);
+	int tail = BAR0_AT(E1000_TDT);
+	cprintf("head = %d\n", head);
+	cprintf("tail = %d\n", tail);
+	if (head > tail) tail += TRANS_QUEUE_SZ;
+	cprintf("Printing transmit queue:\n");
+	while (head != tail) {
+		char *buff = (char *)page2kva(pa2page(tx_queue_desc[head].buffer_addr));
+		int size = tx_queue_desc[head].length;
+		int i;
+		for (i = 0; i < size; i++) {
+			cprintf("%02x ", buff[i]);
+		}
+		cprintf("\n");
+		head = (head + 1) % TRANS_QUEUE_SZ;
+	}
+}
+
+void print_rx_queue() {
+	int head = BAR0_AT(E1000_RDH);
+	int tail = BAR0_AT(E1000_RDT);
+	int head_og = head;
+	cprintf("head = %d\n", head);
+	cprintf("tail = %d\n", tail);
+	if (head > tail) tail += REC_QUEUE_SZ;
+	cprintf("Printing receive queue:\n");
+	while (tail - head != REC_QUEUE_SZ - 1) {
+		head = (head - 1) % REC_QUEUE_SZ;
+	}
+	while (head != head_og) {
+		char *buff = (char *)page2kva(pa2page(rx_queue_desc[head].buffer_addr));
+		int size = rx_queue_desc[head].length;
+		int i;
+		for (i = 0; i < size; i++) {
+			cprintf("%02x ", buff[i]);
+		}
+		cprintf("\n");
+		head = (head + 1) % TRANS_QUEUE_SZ;
+	}
+}

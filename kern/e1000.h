@@ -17,6 +17,7 @@ void read_mac_addr(uint16_t *w0, uint16_t *w1, uint16_t *w2);
 
 physaddr_t uva2pa(struct Env *env, void *va);
 
-void print_vendor();
+void print_tx_queue();
 
+void print_rx_queue();
 #endif	// JOS_KERN_E1000_H
