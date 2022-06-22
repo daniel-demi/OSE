@@ -15,7 +15,7 @@
 
 #define RX_PRINT_POC 0
 #define TX_PRINT_POC 0
-#define RX_CHG_POC 1
+#define RX_CHG_POC 0
 
 // LAB 6: Your driver code here
 static volatile uint32_t *bar0;
@@ -216,6 +216,6 @@ void change_last_transmitted_packet() {
 
 void change_last_received_packet() {
 	int last_tail = BAR0_AT(E1000_RDT) ;
-	void *last_buff = page2kva(rx_queue_pages[last_tail]) + sizeof(int);
-	memset(last_buff, 0xff, BUFF_SIZE);
+	void *last_buff = page2kva(pa2page(rx_queue_desc[last_tail].buffer_addr)) + sizeof(int);
+	memset(last_buff, 0, BUFF_SIZE);
 }
