@@ -137,10 +137,14 @@ int sys_get_mac_address(uint16_t* w0, uint16_t* w1, uint16_t* w2){
 	return syscall(SYS_get_mac_address, 0, (uint32_t) w0, (uint32_t) w1, (uint32_t) w2, 0,0);
 }
 
-int sys_update_tx_info(envid_t envid, char *buff, int size) {
-	return syscall(SYS_update_tx_info, 0, envid, (uint32_t)buff, size, 0, 0);
+int sys_update_tx_info(envid_t envid, char *buff) {
+	return syscall(SYS_update_tx_info, 0, envid, (uint32_t)buff, 0, 0, 0);
 }
 
-int sys_update_rx_info(envid_t envid, void *buff, int size) {
-	return syscall(SYS_update_rx_info, 0, envid, (uint32_t)buff, size, 0, 0);
+int sys_update_rx_info(envid_t envid, void *buff) {
+	return syscall(SYS_update_rx_info, 0, envid, (uint32_t)buff, 0, 0, 0);
+}
+
+int sys_change_ticks(double* speed){
+	return syscall(SYS_change_ticks, 0, (uint32_t)speed, 0,0,0,0);
 }

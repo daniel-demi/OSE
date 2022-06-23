@@ -73,10 +73,8 @@ struct Env {
 	// challenge
 
 	char *tx_buff;
-	int tx_size;
 
 	char *rx_nsipcfub;
-	int rx_size;
 };
 
 #endif // !JOS_INC_ENV_H

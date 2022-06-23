@@ -23,6 +23,7 @@ enum {
 	SYS_get_mac_address,
 	SYS_update_tx_info,
 	SYS_update_rx_info,
+	SYS_change_ticks,
 	NSYSCALLS
 };
 

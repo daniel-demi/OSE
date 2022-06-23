@@ -7,5 +7,6 @@
 void time_init(void);
 void time_tick(void);
 unsigned int time_msec(void);
+void change_speed(double);
 
 #endif /* JOS_KERN_TIME_H */

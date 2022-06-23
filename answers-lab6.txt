@@ -1,7 +1,25 @@
-1. 
-2.
-3.
-4. A fucking long time
+1. How did you structure your transmit implementation? In particular, what do you do if the transmit ring is full?
+Answer: Note: our implementation was done this way in order to achieve zero-copy and complete that challenge.
+ -Filled with empty descriptors that point to 0
+ -Changed the structure of Env to include a pointer to the buffer. Through ipc_send, the environment will get a pointer to the buffer.
+ -Every time we trasmit, we send over the output's envid and used the transmit pointer in the descriptor to point to the buffer that is (now) pointed by the Env structure. In order to send the address to the NIC we pass a physical address since the NIC does not see/translate virtual addresses.
+ -To finish, we increment the TDT and let the NIC take over and transmit the packet
+
+2. How did you structure your receive implementation? In particular, what do you do if the receive queue is empty 
+and a user environment requests the next incoming packet?
+Answer: Note: our implementation was done this way in order to achieve zero-copy and complete that challenge.
+ -First, we created a queue of pages (2d array of physical pages identifiers)
+ -Upon initialization, each descriptor in the descriptor queue points to the corresponding physical page (from the aforementioned identifiers)
+ -When receiving a packet, the packet is written to the pages pointed to in the descriptors. 
+ -When an evironment calls the receive function, we send that environment's envid. Within that environment there is a pointer (virtual address) to the next page (the page the packet is in). We map that page in the page directory of the environment that called the function (input) to the address stored in the pointer in the environment struct.
+ -To finish, we allocate the next page and tell the descriptor to point to it.
+If the receive queue is empty, the function returns an error and then the calling environment receives the error and changes it's own status to WAITING_FOR_REC. When the NIC gets another packet it generates an interrupt which will awaken that environment.
+
+3. What does the web page served by JOS's web server say
+This file came from JOS.
+Cheesy web page!
+
+4. Approximately 50 hours
 
 Challenge implementations:
 
@@ -13,5 +31,19 @@ Setting the mac address in the e1000: We called the read_mac_address function an
 Creating syscall: Went through all the usual steps of creating a syscall and in the function itself we just called the read_mac_address function that we wrote in e1000.c
 Setting mac address in lwIP: The mac address was hardwired into the file jif.c so instead we used the syscall we made to get the mac address and split it up accordingly.
 
-Second challenge - challenge :
+Second challenge - challenge 2:
+As men tioned above, our implementation of transmit and receive were done in order to achieve zero-copy.
+Therefore, refer to questions 1 and 2.
+
+Additional challenges: 
+We implemented two additional challenges 
+Additional challenge 1:
+We added a command in monitor that prints the contents of the tranmit queue and another command that prints the contents of the receive queue.
+We added a print function in the driver in which we read the head and the tail from the TDH and TDT registers and save them to local variables. 
+For the transmit print function, first we saved the current location of the head. From there we incremented the head and print the information stored in the buffer that is pointed to by the descriptor until we reach the tail (we increment in a cyclic manner).
+For the receive print function, first we save the current location of the head. From there we decrement the head until the distance between the head and the tail is equal to QUEUE_SZ-1 (QUEUE_SZ being the size of the queue). Then we increment the head while printing the contents of the buffer pointed to by the descriptor at that location until the head reaches it's original location.
+
+Additional challenge 2:
+We added a function that allows us to change the speed of the ticks. This function was implemented and then a syscall was made in order for the user environments to be able to call it and we added a command in the monitor.
+In order to implement this fucntion we changed the tick count to not be incremented by 1 each time but rather to be incremented by the last value sent to change_speed. change_speed gets a value that is a double in order to be able to slow down the ticks and not just speed them up. The default value of the tick speed is 1 which is set upon the initialization of the timer. 
 
