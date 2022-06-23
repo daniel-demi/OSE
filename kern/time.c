@@ -1,12 +1,14 @@
 #include <kern/time.h>
 #include <inc/assert.h>
 
-static unsigned int ticks;
+static double ticks;
+static double speed;
 
 void
 time_init(void)
 {
-	ticks = 0;
+	ticks = 0.0;
+	speed = 1.0;
 }
 
 // This should be called once per timer interrupt.  A timer interrupt
@@ -14,7 +16,7 @@ time_init(void)
 void
 time_tick(void)
 {
-	ticks++;
+	ticks += speed;
 	if (ticks * 10 < ticks)
 		panic("time_tick: time overflowed");
 }
@@ -22,5 +24,9 @@ time_tick(void)
 unsigned int
 time_msec(void)
 {
-	return ticks * 10;
+	return (int)(ticks * 10);
+}
+
+void change_speed (double new_speed){
+	speed = new_speed;
 }

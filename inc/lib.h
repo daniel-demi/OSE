@@ -62,9 +62,12 @@ int	sys_page_unmap(envid_t env, void *pg);
 int	sys_ipc_try_send(envid_t to_env, uint32_t value, void *pg, int perm);
 int	sys_ipc_recv(void *rcv_pg);
 unsigned int sys_time_msec(void);
-int sys_transmit(char* buff, int size);
-int sys_receive(char *buff, int size);
+int sys_transmit(envid_t envid, int size);
+int sys_receive(envid_t envid, int size);
+int sys_update_tx_info(envid_t envid, char *buff);
+int sys_update_rx_info(envid_t envid, void *buff);
 int sys_get_mac_address(uint16_t* w0,uint16_t* w1, uint16_t* w2);
+int sys_change_ticks(double* speed);
 
 // This must be inlined.  Exercise for reader: why?
 static __inline envid_t __attribute__((always_inline))

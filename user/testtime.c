@@ -20,7 +20,15 @@ void
 umain(int argc, char **argv)
 {
 	int i;
+	/*
+	Test for showing proof of concept for changing tic speed
+	double speed;
 
+	speed = 2.0; //speedup test
+	speed = 0.3; //slowdown test
+
+	sys_change_ticks(&speed);
+	*/
 	// Wait for the console to calm down
 	for (i = 0; i < 50; i++)
 		sys_yield();

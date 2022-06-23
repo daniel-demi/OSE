@@ -13,6 +13,8 @@
 #include <kern/trap.h>
 #include <kern/pmap.h>
 #include <kern/e1000.h>
+#include <kern/time.h>
+
 
 #define CMDBUF_SIZE	80	// enough for one VGA text line
 #define ONE(num) (num ? 1 : 0)
@@ -28,17 +30,37 @@ static struct Command commands[] = {
 	{ "help", "Display this list of commands", mon_help },
 	{ "kerninfo", "Display information about the kernel", mon_kerninfo },
 	{"showmappings", "Display the physical page mappings", show_mappings},
-	{"backtrace", "", mon_backtrace},
-	{"set-perm","", set_perm},
-	{"clear-perm", "", clear_perm},
-	{"change-perm", "", change_perm},
-	{"dump","",dump},
-	{"continue", "", mon_continue},
-	{"step", "", mon_step}
+	{"backtrace", "Print backtrace", mon_backtrace},
+	{"set-perm","Set the permissions for a certain page table entry", set_perm},
+	{"clear-perm", "Clear the permissions for a certain page table entry", clear_perm},
+	{"change-perm", "permissions for a certain page table entry", change_perm},
+	{"dump","Print mappings for pages",dump},
+	{"continue", "Continue from the next instruction", mon_continue},
+	{"step", "Continue for one instruction and then return to monitor", mon_step},
+	{"print-tx-queue", "Print every buffer in the transmit queue", print_tx},
+	{"print-rx-queue", "Print every buffer in the receive queue", print_rx},
+	{"change_ticks", "Change the speed of ticks", mon_change_ticks}
 };
 #define NCOMMANDS (sizeof(commands)/sizeof(commands[0]))
 
 /***** Implementations of basic kernel monitor commands *****/
+
+int mon_change_ticks(int argc, char** argv, struct Trapframe *tf){
+	char* x;
+	double speed = strtod(argv[1], &x);
+	change_speed(speed);
+	return 0;
+}
+
+int print_tx(int argc, char** argv, struct Trapframe *tf) {
+	print_tx_queue();
+	return 0;
+}
+
+int print_rx(int argc, char** argv, struct Trapframe *tf) {
+	print_rx_queue();
+	return 0;
+}
 
 int mon_continue(int argc, char** argv, struct Trapframe *tf) {
 	uint32_t *eflags = &(tf->tf_eflags);
@@ -311,7 +333,6 @@ runcmd(char *buf, struct Trapframe *tf)
 void
 monitor(struct Trapframe *tf)
 {
-	transmit("Hello", 6);
 	char *buf;
 
 	cprintf("Welcome to the JOS kernel monitor!\n");

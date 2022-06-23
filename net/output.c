@@ -10,7 +10,6 @@ output(envid_t ns_envid)
 	// 	- read a packet from the network server
 	//	- send the packet to the device driver
 	for(;;) {
-		cprintf("starting loop\n");
 		envid_t from;
 		int perm;
 		int res = ipc_recv(&from, &nsipcbuf, &perm);
@@ -29,7 +28,11 @@ output(envid_t ns_envid)
 			if (size > nsipcbuf.pkt.jp_len - i) 
 				size = nsipcbuf.pkt.jp_len - i;
 			for(;;) {
-				int res = sys_transmit(nsipcbuf.pkt.jp_data + i, size);
+				
+				if ((res = sys_update_tx_info(0, nsipcbuf.pkt.jp_data + i)) < 0) {
+					panic("sys_update_tx_info faild: %e", res);
+				}
+				int res = sys_transmit(0, size);
 				if (res == -E_NIC_BUSY){
 					sys_env_set_status(sys_getenvid(), ENV_WAITING_FOR_TRANSMIT);
 					sys_yield();
